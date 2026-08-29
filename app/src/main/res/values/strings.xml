@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">RocketPlayer</string>
+    <string name="title_rocket">ROCKETPLAYER</string>
+    <string name="no_track">ROCKET: IDLE</string>
+    <string name="vol_label">VOL</string>
+    <string name="bal_label">BAL</string>
+    <string name="label_stereo">STEREO</string>
+    <string name="label_mono">MONO</string>
+</resources>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:padding="4dp"
+    tools:context=".MainActivity">
+
+    <!-- RocketPlayer Main Unit -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/player_unit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rocket_frame"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Title Bar -->
+        <View
+            android:id="@+id/title_bar"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:background="@color/rocket_accent_dim"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/rocket_logo"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_rocket"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintStart_toStartOf="@id/title_bar"
+            app:layout_constraintTop_toTopOf="@id/title_bar" />
+
+        <TextView
+            android:id="@+id/app_title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/title_rocket"
+            android:textColor="@color/rocket_gold"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintStart_toEndOf="@id/rocket_logo"
+            app:layout_constraintTop_toTopOf="@id/title_bar" />
+
+        <ImageButton
+            android:id="@+id/btn_theme"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_manage"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintEnd_toStartOf="@id/btn_speed"
+            app:layout_constraintTop_toTopOf="@id/title_bar"
+            app:tint="@color/rocket_gold" />
+
+        <ImageButton
+            android:id="@+id/btn_speed"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_lock_idle_alarm"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintEnd_toEndOf="@id/title_bar"
+            app:layout_constraintTop_toTopOf="@id/title_bar"
+            app:tint="@color/rocket_gold" />
+
+        <!-- Display -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/display_container"
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rocket_display_frame"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title_bar">
+
+            <!-- Visualizer -->
+            <LinearLayout
+                android:id="@+id/visualizer"
+                android:layout_width="120dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+                <!-- 16 bars for more detail -->
+                <View android:layout_width="4dp" android:layout_height="5dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="15dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="25dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="35dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="45dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="30dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="20dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="10dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="5dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="15dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="25dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="40dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="20dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+                <View android:layout_width="4dp" android:layout_height="10dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
+            </LinearLayout>
+
+            <!-- Status Indicators -->
+            <LinearLayout
+                android:id="@+id/status_indicators"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+                <TextView android:id="@+id/tv_stereo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_stereo" android:textColor="@color/rocket_text_dim" android:textSize="8sp" android:layout_marginEnd="4dp"/>
+                <TextView android:id="@+id/tv_mono" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_mono" android:textColor="@color/rocket_text_dim" android:textSize="8sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/playback_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:fontFamily="monospace"
+                android:text="00:00"
+                android:textColor="@color/rocket_accent"
+                android:textSize="36sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/status_indicators" />
+
+            <TextView
+                android:id="@+id/track_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginTop="4dp"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="@string/no_track"
+                android:textColor="@color/rocket_gold"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/playback_time" />
+
+            <TextView
+                android:id="@+id/sample_rate_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="8dp"
+                android:text="44 kHz"
+                android:textColor="@color/rocket_text_dim"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/bitrate_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="8dp"
+                android:text="128 kbps"
+                android:textColor="@color/rocket_text_dim"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/sample_rate_info" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Seek Bar -->
+        <SeekBar
+            android:id="@+id/seek_bar"
+            android:layout_width="0dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="8dp"
+            android:progressDrawable="@drawable/rocket_seekbar_progress"
+            android:thumb="@drawable/rocket_thumb"
+            android:splitTrack="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/display_container" />
+
+        <!-- Extra Sliders -->
+        <LinearLayout
+            android:id="@+id/extra_sliders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/seek_bar">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/bal_label" android:textColor="@color/rocket_silver" android:textSize="8sp" />
+                <SeekBar
+                    android:id="@+id/balance_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    android:max="100"
+                    android:progress="50"
+                    android:progressDrawable="@drawable/rocket_seekbar_progress"
+                    android:thumb="@drawable/rocket_thumb"
+                    android:splitTrack="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/vol_label" android:textColor="@color/rocket_silver" android:textSize="8sp" />
+                <SeekBar
+                    android:id="@+id/volume_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressDrawable="@drawable/rocket_seekbar_progress"
+                    android:thumb="@drawable/rocket_thumb"
+                    android:splitTrack="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Controls -->
+        <LinearLayout
+            android:id="@+id/main_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/extra_sliders">
+
+            <ImageButton android:id="@+id/btn_prev" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@android:drawable/ic_media_previous" app:tint="#000000" />
+            <ImageButton android:id="@+id/btn_play" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_play" />
+            <ImageButton android:id="@+id/btn_pause" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_pause" />
+            <ImageButton android:id="@+id/btn_stop" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_stop" />
+            <ImageButton android:id="@+id/btn_next" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@android:drawable/ic_media_next" app:tint="#000000" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extra_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@id/main_controls"
+            app:layout_constraintStart_toEndOf="@id/main_controls"
+            app:layout_constraintTop_toTopOf="@id/main_controls">
+            <ToggleButton android:id="@+id/btn_shuffle" android:layout_width="36dp" android:layout_height="36dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:textOff="SHF" android:textOn="SHF" android:textColor="#000000" android:textSize="8sp" />
+            <ToggleButton android:id="@+id/btn_repeat" android:layout_width="36dp" android:layout_height="36dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:textOff="REP" android:textOn="REP" android:textColor="#000000" android:textSize="8sp" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Playlist Unit -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/playlist_unit"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/rocket_frame"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/player_unit">
+
+        <TextView
+            android:id="@+id/playlist_header"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:background="@color/rocket_accent_dim"
+            android:paddingStart="8dp"
+            android:gravity="center_vertical"
+            android:text="FLIGHT DECK - PLAYLIST"
+            android:textColor="@color/rocket_gold"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btn_add_stream"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btn_add_stream"
+            android:layout_width="32dp"
+            android:layout_height="24dp"
+            android:background="@color/rocket_accent_dim"
+            android:src="@android:drawable/ic_menu_add"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/rocket_gold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_playlist"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/playlist_header"
+            tools:listitem="@android:layout/simple_list_item_1" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

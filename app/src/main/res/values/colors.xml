@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <!-- Rocket Theme -->
+    <color name="rocket_bg">#1A1A1D</color>
+    <color name="rocket_bg_dark">#0F0F0F</color>
+    <color name="rocket_accent">#FF4500</color>
+    <color name="rocket_accent_dim">#8B0000</color>
+    <color name="rocket_text">#FF4500</color>
+
+    <!-- Classic Winamp Theme -->
+    <color name="classic_bg">#2B2B2B</color>
+    <color name="classic_bg_dark">#1A1A1A</color>
+    <color name="classic_accent">#00FF00</color>
+    <color name="classic_accent_dim">#004400</color>
+    <color name="classic_text">#00FF00</color>
+
+    <!-- Matrix Theme -->
+    <color name="matrix_bg">#000000</color>
+    <color name="matrix_accent">#00FF41</color>
+    <color name="matrix_accent_dim">#003B00</color>
+    <color name="matrix_text">#00FF41</color>
+
+    <!-- Cyberpunk Theme -->
+    <color name="cyber_bg">#2D0031</color>
+    <color name="cyber_accent">#00F3FF</color>
+    <color name="cyber_accent_dim">#7000FF</color>
+    <color name="cyber_text">#FF00E0</color>
+    <color name="cyber_gold">#FFFF00</color>
+
+    <!-- Gold/Luxury Theme -->
+    <color name="gold_bg">#1A1A1A</color>
+    <color name="gold_accent">#FFD700</color>
+    <color name="gold_accent_dim">#554400</color>
+    <color name="gold_text">#FFD700</color>
+
+    <!-- Shared -->
+    <color name="rocket_silver">#E0E0E0</color>
+    <color name="rocket_gold">#FFD700</color>
+    <color name="rocket_display_bg">#000000</color>
+    <color name="rocket_text_dim">#441100</color>
+</resources>
