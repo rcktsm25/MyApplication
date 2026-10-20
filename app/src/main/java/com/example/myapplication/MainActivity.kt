@@ -2,17 +2,14 @@ package com.example.myapplication
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.SeekBar
-import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,379 +17,823 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.myapplication.databinding.ActivityMainBinding
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.spotify.protocol.types.PlayerState
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
+
+    // ── ViewBinding ──────────────────────────────────────────────────────────
+    private lateinit var binding: ActivityMainBinding
+
+    // ── Spotify Controller & Estado ───────────────────────────────────────────
+    private lateinit var spotifyManager: SpotifyManager
+    private var isSpotifyMode = false
+
+    // ── Media3 ───────────────────────────────────────────────────────────────
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private val controller: MediaController?
-        get() = if (controllerFuture.isDone) controllerFuture.get() else null
+        get() = if (::controllerFuture.isInitialized && controllerFuture.isDone) {
+            try {
+                controllerFuture.get()
+            } catch (e: Exception) {
+                null
+            }
+        } else null
 
-    private lateinit var trackTitle: TextView
-    private lateinit var playbackTime: TextView
-    private lateinit var seekBar: SeekBar
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var tvStereo: TextView
-    private lateinit var tvMono: TextView
+    // ── Skins ────────────────────────────────────────────────────────────────
     private var currentSkinIndex = 0
     private val skins = listOf("ROCKET", "CLASSIC", "MATRIX", "CYBER", "GOLD")
-    private val handler = Handler(Looper.getMainLooper())
-    private var visualizerSpeed = 80L
+    private lateinit var prefs: SharedPreferences
 
+    // ── Playlist ─────────────────────────────────────────────────────────────
     private val playlist = mutableListOf(
         Track("SomaFM: Groove Salad", "Ambient/Downtempo", "https://somafm.com/groovesalad130.mp3"),
         Track("SomaFM: DEF CON Radio", "Music for Hackers", "https://somafm.com/defcon130.mp3"),
         Track("Lofi Girl", "Study Beats", "https://stream.zeno.fm/0r0xa792kwzuv"),
+        Track("Spotify: Synthwave Retro", "Retrowave & Beats", "spotify:playlist:37i9dQZF1DXdLEN7aqioXM"),
+        Track("Spotify: Lo-Fi Study", "Chill Instrumental", "spotify:playlist:37i9dQZF1DXcBWIGoYBM5M"),
         Track("KEXP Seattle", "Indie Radio", "https://kexp-mp3-128.streamguys1.com/kexp128.mp3"),
         Track("Jazz24", "Classic Jazz", "https://live.jazz24.org/jazz24-mp3")
     )
+    private lateinit var trackAdapter: TrackAdapter
 
+    // ── SeekBar state (evitar seekTo continuo mientras se arrastra) ───────────
+    private var userSeekInProgress = false
+
+    // ── Pista actual en el controller ────────────────────────────────────────
+    private var currentTrackIndex: Int = -1
+
+    // ── Progreso continuo de reproducción (Corrección de Segundero / SeekBar) ─
+    private val progressHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val progressRunnable = object : Runnable {
+        override fun run() {
+            val player = controller
+            if (player != null && player.isPlaying && !userSeekInProgress) {
+                val duration = player.duration
+                if (duration > 0 && duration < Long.MAX_VALUE / 2) {
+                    binding.seekBar.max = duration.toInt()
+                    binding.seekBar.progress = player.currentPosition.toInt()
+                    binding.seekBar.isEnabled = true
+                }
+                binding.playbackTime.text = formatTime(player.currentPosition)
+            }
+            if (player?.isPlaying == true) {
+                progressHandler.postDelayed(this, 1000)
+            }
+        }
+    }
+
+    private fun startProgressUpdates() {
+        progressHandler.removeCallbacks(progressRunnable)
+        progressHandler.post(progressRunnable)
+    }
+
+    private fun stopProgressUpdates() {
+        progressHandler.removeCallbacks(progressRunnable)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
 
-        trackTitle = findViewById(R.id.track_title)
-        playbackTime = findViewById(R.id.playback_time)
-        seekBar = findViewById(R.id.seek_bar)
-        recyclerView = findViewById(R.id.recycler_playlist)
-        tvStereo = findViewById(R.id.tv_stereo)
-        tvMono = findViewById(R.id.tv_mono)
+        prefs = getSharedPreferences("RocketSettings", MODE_PRIVATE)
 
-        // Enable Marquee
-        trackTitle.isSelected = true
+        // Verificar sesión activa; si no existe, redirigir a LoginActivity
+        val loggedUser = prefs.getString("logged_username", null)
+        val isRemembered = prefs.getBoolean("is_logged_in", false)
+        if (loggedUser == null && !isRemembered) {
+            startActivity(android.content.Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
-        findViewById<ImageButton>(R.id.btn_theme).setOnClickListener { toggleSkin() }
-        findViewById<ImageButton>(R.id.btn_speed).setOnClickListener { toggleVisualizerSpeed() }
-        findViewById<ImageButton>(R.id.btn_add_stream).setOnClickListener { showAddStreamDialog() }
+        // Marquee en el título de pista
+        binding.trackTitle.isSelected = true
 
-        // Load saved skin
-        val savedSkin = getSharedPreferences("RocketSettings", MODE_PRIVATE).getString("selected_skin", "ROCKET") ?: "ROCKET"
-        applySkin(savedSkin)
+        // Botones de la barra de título
+        binding.btnSpotify.setOnClickListener { showSpotifyDialog() }
+        binding.btnTheme.setOnClickListener { toggleSkin() }
+        binding.btnSpeed.setOnClickListener { toggleVisualizerSpeed() }
+        binding.btnLogout.setOnClickListener { showLogoutDialog() }
+        binding.btnAddStream.setOnClickListener { showAddStreamDialog() }
 
+        // Inicializar integración con Spotify
+        spotifyManager = SpotifyManager(this)
+        setupSpotify()
+
+        // Cargar datos, inicializar lista y controles antes de aplicar el tema
+        loadSavedStreams()
         setupRecyclerView()
         setupControls()
+
+        // Restaurar skin guardado
+        val savedSkin = prefs.getString("selected_skin", "ROCKET") ?: "ROCKET"
+        applySkin(savedSkin)
+
         checkPermissions()
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Persistencia de streams del usuario
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun loadSavedStreams() {
+        val count = prefs.getInt("saved_stream_count", 0)
+        for (i in 0 until count) {
+            val title = prefs.getString("stream_title_$i", null) ?: continue
+            val artist = prefs.getString("stream_artist_$i", "") ?: ""
+            val uri = prefs.getString("stream_uri_$i", null) ?: continue
+            playlist.add(Track(title, artist, uri))
+        }
+    }
+
+    private fun saveUserStreams() {
+        // Guardar solo los streams añadidos por el usuario (a partir de las 7 pistas predeterminadas)
+        val defaultCount = 7
+        val userStreams = playlist.drop(defaultCount)
+        val editor = prefs.edit()
+        editor.putInt("saved_stream_count", userStreams.size)
+        userStreams.forEachIndexed { i, track ->
+            editor.putString("stream_title_$i", track.title)
+            editor.putString("stream_artist_$i", track.artist)
+            editor.putString("stream_uri_$i", track.uri)
+        }
+        editor.apply()
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Diálogo: Añadir stream o recurso de Spotify
+    // ─────────────────────────────────────────────────────────────────────────
+
     private fun showAddStreamDialog() {
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Add Streaming Station")
-        
-        val container = android.widget.LinearLayout(this)
-        container.orientation = android.widget.LinearLayout.VERTICAL
-        container.setPadding(32, 16, 32, 16)
+        val nameInput = android.widget.EditText(this).apply {
+            hint = getString(R.string.dialog_name_hint)
+        }
+        val urlInput = android.widget.EditText(this).apply {
+            hint = getString(R.string.dialog_url_hint)
+            inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI or android.text.InputType.TYPE_CLASS_TEXT
+        }
 
-        val nameInput = android.widget.EditText(this)
-        nameInput.hint = "Station Name (e.g. My Radio)"
-        container.addView(nameInput)
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 16, 48, 8)
+            addView(nameInput)
+            addView(urlInput)
+        }
 
-        val urlInput = android.widget.EditText(this)
-        urlInput.hint = "Streaming URL (https://...)"
-        container.addView(urlInput)
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_add_title))
+            .setView(container)
+            .setPositiveButton(getString(R.string.dialog_ok)) { _, _ ->
+                val url = urlInput.text.toString().trim()
+                if (url.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.error_empty_url), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val isSpotify = url.startsWith("spotify:") || url.contains("spotify.com")
+                val defaultName = if (isSpotify) "Spotify Stream" else getString(R.string.stream_default_name)
+                val defaultArtist = if (isSpotify) "Spotify" else getString(R.string.stream_user_label)
+                val name = nameInput.text.toString().trim().ifEmpty { defaultName }
 
-        builder.setView(container)
-
-        builder.setPositiveButton("CONNECT") { _, _ ->
-            val name = nameInput.text.toString().ifEmpty { "Custom Stream" }
-            val url = urlInput.text.toString()
-            if (url.isNotEmpty()) {
-                val newTrack = Track(name, "User Added", url)
+                val newTrack = Track(name, defaultArtist, url)
                 playlist.add(newTrack)
-                recyclerView.adapter?.notifyItemInserted(playlist.size - 1)
+                trackAdapter.submitList(playlist.toList())
+
+                // Solo agregar a ExoPlayer si es un flujo de audio estándar (no Spotify)
+                if (!isSpotify) {
+                    controller?.addMediaItem(
+                        MediaItem.Builder()
+                            .setUri(url)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(name)
+                                    .setArtist(defaultArtist)
+                                    .build()
+                            )
+                            .build()
+                    )
+                }
+
+                saveUserStreams()
+                Toast.makeText(this, getString(R.string.toast_stream_added), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
+            .show()
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Integración Spotify — Callbacks y Diálogo de Conexión
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Configura los callbacks de eventos de SpotifyManager:
+     * - onConnectionStatusChanged: actualiza el icono y estado en la interfaz.
+     * - onPlayerStateChanged: actualiza el display retro con la canción y tiempo de Spotify.
+     * - onError: muestra errores en pantalla.
+     */
+    private fun setupSpotify() {
+        spotifyManager.onConnectionStatusChanged = { isConnected ->
+            runOnUiThread {
+                if (isConnected) {
+                    binding.btnSpotify.imageTintList = null
+                    Toast.makeText(this, getString(R.string.spotify_toast_connected), Toast.LENGTH_SHORT).show()
+                } else {
+                    val colors = getAccentColor()
+                    binding.btnSpotify.imageTintList = android.content.res.ColorStateList.valueOf(colors)
+                    binding.tvSpotifyBadge.visibility = android.view.View.GONE
+                }
+            }
+        }
+
+        spotifyManager.onPlayerStateChanged = { playerState ->
+            runOnUiThread {
+                val track = playerState.track
+                if (track != null) {
+                    isSpotifyMode = true
+                    binding.tvSpotifyBadge.visibility = android.view.View.VISIBLE
+                    binding.trackTitle.text = "${track.name} — ${track.artist.name}"
+                    binding.playbackTime.text = formatTime(playerState.playbackPosition)
+
+                    if (track.duration > 0 && !userSeekInProgress) {
+                        binding.seekBar.max = track.duration.toInt()
+                        binding.seekBar.progress = playerState.playbackPosition.toInt()
+                        binding.seekBar.isEnabled = true
+                    }
+
+                    binding.bitrateInfo.text = "SPOTIFY"
+                    binding.sampleRateInfo.text = "320 kbps"
+
+                    val accentColor = getAccentColor()
+                    val dimColor = ContextCompat.getColor(this, R.color.rocket_text_dim)
+
+                    if (!playerState.isPaused) {
+                        binding.visualizer.startAnimation()
+                        binding.tvStereo.setTextColor(accentColor)
+                    } else {
+                        binding.visualizer.stopAnimation()
+                        binding.tvStereo.setTextColor(dimColor)
+                    }
+                }
+            }
+        }
+
+        spotifyManager.onError = { error ->
+            runOnUiThread {
+                showStatus("Spotify: ${error.localizedMessage ?: getString(R.string.spotify_toast_error)}")
+            }
+        }
+    }
+
+    /**
+     * Despliega el diálogo de gestión de conexión con Spotify.
+     * Permite ingresar o editar el Client ID de Spotify Developer y muestra
+     * los datos técnicos necesarios para configurar la aplicación en Spotify Dashboard.
+     */
+    private fun showSpotifyDialog() {
+        if (!spotifyManager.isSpotifyInstalled()) {
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.spotify_dialog_title))
+                .setMessage(getString(R.string.spotify_not_installed) + "\n\n" + getString(R.string.spotify_install_prompt))
+                .setPositiveButton(getString(R.string.spotify_install_button)) { _, _ ->
+                    spotifyManager.openSpotifyInPlayStore()
+                }
+                .setNegativeButton(getString(R.string.dialog_cancel), null)
+                .show()
+            return
+        }
+
+        val isConnected = spotifyManager.isConnected()
+        val clientIdInput = android.widget.EditText(this).apply {
+            hint = getString(R.string.spotify_client_id_hint)
+            setText(spotifyManager.getClientId())
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+
+        val infoText = android.widget.TextView(this).apply {
+            text = """
+                Estado: ${if (isConnected) "● CONECTADO" else "○ DESCONECTADO"}
                 
-                controller?.addMediaItem(
-                    MediaItem.Builder()
-                        .setUri(url)
-                        .setMediaMetadata(MediaMetadata.Builder().setTitle(name).setArtist("Streaming").build())
-                        .build()
+                Parámetros para Spotify Developer Dashboard:
+                • Package: com.example.myapplication
+                • Redirect URI: ${SpotifyManager.REDIRECT_URI}
+                • SHA-1 (Debug):
+                  26:28:A4:37:81:DA:A7:ED:A7:28:41:2E:6D:50:8B:CB:DA:A3:F0:CB
+            """.trimIndent()
+            textSize = 11f
+            setPadding(0, 0, 0, 16)
+            setTextIsSelectable(true)
+        }
+
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 8)
+            addView(infoText)
+            addView(clientIdInput)
+        }
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.spotify_dialog_title))
+            .setView(container)
+
+        if (isConnected) {
+            builder.setPositiveButton(getString(R.string.spotify_btn_disconnect)) { _, _ ->
+                spotifyManager.disconnect()
+                isSpotifyMode = false
+                binding.tvSpotifyBadge.visibility = android.view.View.GONE
+                Toast.makeText(this, getString(R.string.spotify_toast_disconnected), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            builder.setPositiveButton(getString(R.string.spotify_btn_connect)) { _, _ ->
+                val enteredId = clientIdInput.text.toString().trim()
+                if (enteredId.isNotEmpty()) {
+                    spotifyManager.saveClientId(enteredId)
+                }
+                Toast.makeText(this, getString(R.string.spotify_status_connecting), Toast.LENGTH_SHORT).show()
+                spotifyManager.connect(
+                    onSuccess = {
+                        runOnUiThread {
+                            Toast.makeText(this, getString(R.string.spotify_toast_connected), Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onFailure = { error ->
+                        runOnUiThread {
+                            Toast.makeText(this, "${getString(R.string.spotify_toast_error)}: ${error.localizedMessage}", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 )
             }
         }
-        builder.setNegativeButton("CANCEL", null)
+
+        builder.setNegativeButton(getString(R.string.dialog_cancel), null)
         builder.show()
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Skin / Theme
+    // ─────────────────────────────────────────────────────────────────────────
 
     private fun toggleSkin() {
         currentSkinIndex = (currentSkinIndex + 1) % skins.size
         applySkin(skins[currentSkinIndex])
     }
 
-    private fun toggleVisualizerSpeed() {
-        visualizerSpeed = when(visualizerSpeed) {
-            80L -> 40L // Turbo
-            40L -> 150L // Chill
-            else -> 80L // Normal
-        }
-        val speedName = when(visualizerSpeed) {
-            40L -> "TURBO"
-            150L -> "CHILL"
-            else -> "NORMAL"
-        }
-        android.widget.Toast.makeText(this, "Visualizer Speed: $speedName", android.widget.Toast.LENGTH_SHORT).show()
-    }
-
     private fun applySkin(skinName: String) {
-        val prefs = getSharedPreferences("RocketSettings", MODE_PRIVATE)
         prefs.edit().putString("selected_skin", skinName).apply()
+        currentSkinIndex = skins.indexOf(skinName).coerceAtLeast(0)
 
-        val accentColor: Int
-        val dimColor: Int
-        val titleText: String
-        val textColor: Int
+        data class SkinColors(val accent: Int, val dim: Int, val title: String, val textColor: Int)
 
-        when (skinName) {
-            "CLASSIC" -> {
-                accentColor = ContextCompat.getColor(this, R.color.classic_accent)
-                dimColor = ContextCompat.getColor(this, R.color.classic_accent_dim)
-                titleText = "WINAMP 5.0"
-                textColor = accentColor
-            }
-            "MATRIX" -> {
-                accentColor = ContextCompat.getColor(this, R.color.matrix_accent)
-                dimColor = ContextCompat.getColor(this, R.color.matrix_accent_dim)
-                titleText = "NEO PLAYER"
-                textColor = accentColor
-            }
-            "CYBER" -> {
-                accentColor = ContextCompat.getColor(this, R.color.cyber_accent)
-                dimColor = ContextCompat.getColor(this, R.color.cyber_accent_dim)
-                titleText = "CYBER_ROCKET"
-                textColor = ContextCompat.getColor(this, R.color.cyber_text)
-            }
-            "GOLD" -> {
-                accentColor = ContextCompat.getColor(this, R.color.gold_accent)
-                dimColor = ContextCompat.getColor(this, R.color.gold_accent_dim)
-                titleText = "LUXURY ROCKET"
-                textColor = ContextCompat.getColor(this, R.color.gold_text)
-            }
-            else -> { // ROCKET
-                accentColor = ContextCompat.getColor(this, R.color.rocket_accent)
-                dimColor = ContextCompat.getColor(this, R.color.rocket_accent_dim)
-                titleText = "ROCKETPLAYER"
-                textColor = ContextCompat.getColor(this, R.color.rocket_gold)
-            }
+        val colors = when (skinName) {
+            "CLASSIC" -> SkinColors(
+                ContextCompat.getColor(this, R.color.classic_accent),
+                ContextCompat.getColor(this, R.color.classic_accent_dim),
+                "WINAMP 5.0",
+                ContextCompat.getColor(this, R.color.classic_accent)
+            )
+            "MATRIX" -> SkinColors(
+                ContextCompat.getColor(this, R.color.matrix_accent),
+                ContextCompat.getColor(this, R.color.matrix_accent_dim),
+                "NEO PLAYER",
+                ContextCompat.getColor(this, R.color.matrix_accent)
+            )
+            "CYBER" -> SkinColors(
+                ContextCompat.getColor(this, R.color.cyber_accent),
+                ContextCompat.getColor(this, R.color.cyber_accent_dim),
+                "CYBER_ROCKET",
+                ContextCompat.getColor(this, R.color.cyber_text)
+            )
+            "GOLD" -> SkinColors(
+                ContextCompat.getColor(this, R.color.gold_accent),
+                ContextCompat.getColor(this, R.color.gold_accent_dim),
+                "LUXURY ROCKET",
+                ContextCompat.getColor(this, R.color.gold_text)
+            )
+            else -> SkinColors(  // ROCKET (default)
+                ContextCompat.getColor(this, R.color.rocket_accent),
+                ContextCompat.getColor(this, R.color.rocket_accent_dim),
+                "ROCKETPLAYER",
+                ContextCompat.getColor(this, R.color.rocket_gold)
+            )
         }
 
-        // Apply to UI
-        findViewById<View>(R.id.title_bar).setBackgroundColor(dimColor)
-        findViewById<TextView>(R.id.app_title_text).apply {
+        // Aplicar a la UI
+        binding.titleBar.setBackgroundColor(colors.dim)
+
+        val loggedUser = prefs.getString("logged_username", null)
+        val titleText = if (loggedUser.isNullOrEmpty()) colors.title else "${colors.title} • [$loggedUser]"
+        binding.appTitleText.apply {
             text = titleText
-            setTextColor(textColor)
+            setTextColor(colors.textColor)
         }
-        
-        playbackTime.setTextColor(accentColor)
-        trackTitle.setTextColor(textColor)
-        findViewById<View>(R.id.playlist_header).setBackgroundColor(dimColor)
-        
-        // Save the index for next toggle
-        currentSkinIndex = skins.indexOf(skinName)
-        
+        binding.playbackTime.setTextColor(colors.accent)
+        binding.trackTitle.setTextColor(colors.textColor)
+        binding.playlistHeader.setBackgroundColor(colors.dim)
+        binding.btnAddStream.backgroundTintList = android.content.res.ColorStateList.valueOf(colors.dim)
+        binding.visualizer.setColors(colors.accent, colors.dim)
+        binding.btnLogout.imageTintList = android.content.res.ColorStateList.valueOf(colors.textColor)
+
+        // Tint del botón de Spotify: si está conectado permanece en su color original (verde)
+        if (::spotifyManager.isInitialized && spotifyManager.isConnected()) {
+            binding.btnSpotify.imageTintList = null
+        } else {
+            binding.btnSpotify.imageTintList = android.content.res.ColorStateList.valueOf(colors.textColor)
+        }
+
+        // Actualizar colores del adapter si está inicializado
+        if (::trackAdapter.isInitialized) {
+            trackAdapter.updateTheme(colors.accent, colors.dim)
+        }
+
         updateUI()
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Diálogo de Cerrar Sesión
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun showLogoutDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_logout_title))
+            .setMessage(getString(R.string.dialog_logout_message))
+            .setPositiveButton(getString(R.string.dialog_logout_confirm)) { _, _ ->
+                stopProgressUpdates()
+                if (::spotifyManager.isInitialized) {
+                    spotifyManager.disconnect()
+                }
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                prefs.edit().apply {
+                    putBoolean("is_logged_in", false)
+                    remove("logged_username")
+                    apply()
+                }
+                controller?.stop()
+                val intent = android.content.Intent(this, LoginActivity::class.java)
+                intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
+            .show()
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Velocidad del visualizador (ahora controla el visualizador custom)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun toggleVisualizerSpeed() {
+        // La velocidad se gestiona internamente en VisualizerView,
+        // pero mantenemos la opción para el toast (futuro: exponer velocidad)
+        val toastText = getString(R.string.toast_speed_turbo)
+        Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show()
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RecyclerView / Playlist
+    // ─────────────────────────────────────────────────────────────────────────
+
     private fun setupRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = TrackAdapter(playlist) { track ->
-            playTrack(track)
+        trackAdapter = TrackAdapter { track, index ->
+            playTrackAtIndex(index)
+        }
+        binding.recyclerPlaylist.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
+        binding.recyclerPlaylist.adapter = trackAdapter
+        trackAdapter.submitList(playlist.toList())
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Reproducción — Modo Híbrido (ExoPlayer para Radio / Spotify para Streaming)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun playTrackAtIndex(index: Int) {
+        if (index < 0 || index >= playlist.size) return
+        val track = playlist[index]
+        currentTrackIndex = index
+        trackAdapter.setCurrentTrack(index)
+
+        if (track.isSpotify) {
+            // Activar modo Spotify
+            isSpotifyMode = true
+            controller?.pause()
+            stopProgressUpdates()
+            binding.tvSpotifyBadge.visibility = android.view.View.VISIBLE
+            binding.trackTitle.text = "${track.title} — ${track.artist}"
+
+            if (!spotifyManager.isConnected()) {
+                Toast.makeText(this, getString(R.string.spotify_status_connecting), Toast.LENGTH_SHORT).show()
+                spotifyManager.connect(
+                    onSuccess = {
+                        runOnUiThread {
+                            spotifyManager.play(track.uri)
+                        }
+                    },
+                    onFailure = {
+                        runOnUiThread {
+                            showSpotifyDialog()
+                        }
+                    }
+                )
+            } else {
+                spotifyManager.play(track.uri)
+            }
+        } else {
+            // Modo Radio / ExoPlayer
+            isSpotifyMode = false
+            if (::spotifyManager.isInitialized) {
+                spotifyManager.pause()
+            }
+            binding.tvSpotifyBadge.visibility = android.view.View.GONE
+            val player = controller ?: return
+
+            // Mapear el índice relativo en la lista de pistas que maneja ExoPlayer
+            val radioIndex = playlist.take(index + 1).count { !it.isSpotify } - 1
+            if (radioIndex >= 0 && radioIndex < player.mediaItemCount) {
+                player.seekToDefaultPosition(radioIndex)
+                player.play()
+            }
         }
     }
 
-    private fun playTrack(track: Track) {
-        val player = controller ?: return
-        val mediaItem = MediaItem.Builder()
-            .setUri(track.uri)
-            .setMediaMetadata(MediaMetadata.Builder().setTitle(track.title).setArtist(track.artist).build())
-            .build()
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.play()
-    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // Controles de reproducción
+    // ─────────────────────────────────────────────────────────────────────────
 
     private fun setupControls() {
-        findViewById<ImageButton>(R.id.btn_play).setOnClickListener { controller?.play() }
-        findViewById<ImageButton>(R.id.btn_pause).setOnClickListener { controller?.pause() }
-        findViewById<ImageButton>(R.id.btn_stop).setOnClickListener { controller?.stop() }
-        findViewById<ImageButton>(R.id.btn_prev).setOnClickListener { controller?.seekToPrevious() }
-        findViewById<ImageButton>(R.id.btn_next).setOnClickListener { controller?.seekToNext() }
-
-        val shuffleBtn = findViewById<android.widget.ToggleButton>(R.id.btn_shuffle)
-        shuffleBtn.setOnCheckedChangeListener { _, isChecked ->
-            controller?.shuffleModeEnabled = isChecked
+        binding.btnPlay.setOnClickListener {
+            if (isSpotifyMode) {
+                controller?.pause()
+                spotifyManager.resume()
+            } else {
+                if (::spotifyManager.isInitialized) spotifyManager.pause()
+                controller?.play()
+            }
+        }
+        binding.btnPause.setOnClickListener {
+            if (isSpotifyMode) {
+                spotifyManager.pause()
+            } else {
+                controller?.pause()
+            }
+        }
+        binding.btnStop.setOnClickListener {
+            if (isSpotifyMode) {
+                spotifyManager.pause()
+                binding.visualizer.stopAnimation()
+                isSpotifyMode = false
+                binding.tvSpotifyBadge.visibility = android.view.View.GONE
+            }
+            controller?.stop()
+        }
+        binding.btnPrev.setOnClickListener {
+            if (isSpotifyMode) {
+                spotifyManager.skipPrevious()
+            } else {
+                controller?.seekToPrevious()
+            }
+        }
+        binding.btnNext.setOnClickListener {
+            if (isSpotifyMode) {
+                spotifyManager.skipNext()
+            } else {
+                controller?.seekToNext()
+            }
         }
 
-        val repeatBtn = findViewById<android.widget.ToggleButton>(R.id.btn_repeat)
-        repeatBtn.setOnCheckedChangeListener { _, isChecked ->
-            controller?.repeatMode = if (isChecked) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+        binding.btnShuffle.setOnCheckedChangeListener { _, isChecked ->
+            if (isSpotifyMode) {
+                spotifyManager.setShuffle(isChecked)
+            } else {
+                controller?.shuffleModeEnabled = isChecked
+            }
+        }
+        binding.btnRepeat.setOnCheckedChangeListener { _, isChecked ->
+            if (isSpotifyMode) {
+                spotifyManager.toggleRepeat()
+            } else {
+                controller?.repeatMode =
+                    if (isChecked) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+            }
         }
 
-        val volumeBar = findViewById<SeekBar>(R.id.volume_bar)
-        volumeBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        // Volume
+        binding.volumeBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) applyVolumeAndBalance()
+                if (fromUser) controller?.volume = progress / 100f
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        val balanceBar = findViewById<SeekBar>(R.id.balance_bar)
-        balanceBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) applyVolumeAndBalance()
-            }
+        // Balance (comentario real: necesita AudioProcessor para implementación completa)
+        binding.balanceBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        // SeekBar — Soporta tanto posición de ExoPlayer como de Spotify
+        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) controller?.seekTo(progress.toLong())
+                if (fromUser) {
+                    binding.playbackTime.text = formatTime(progress.toLong())
+                }
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                userSeekInProgress = true
+            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                userSeekInProgress = false
+                seekBar?.let {
+                    if (isSpotifyMode) {
+                        spotifyManager.seekTo(it.progress.toLong())
+                    } else {
+                        controller?.seekTo(it.progress.toLong())
+                    }
+                }
+            }
         })
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Ciclo de vida — Media3 Controller
+    // ─────────────────────────────────────────────────────────────────────────
 
     override fun onStart() {
         super.onStart()
         val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({
-            val player = controller
-            if (player != null) {
-                if (player.mediaItemCount == 0) {
-                    // Load initial playlist into controller
-                    val mediaItems = playlist.map { track ->
-                        MediaItem.Builder()
-                            .setUri(track.uri)
-                            .setMediaMetadata(MediaMetadata.Builder().setTitle(track.title).setArtist(track.artist).build())
-                            .build()
-                    }
-                    player.setMediaItems(mediaItems)
-                    player.prepare()
+            val player = controller ?: return@addListener
+
+            if (player.mediaItemCount == 0) {
+                // Solo cargar en ExoPlayer las pistas de radio/HTTP (las de Spotify las gestiona SpotifyManager)
+                val radioTracks = playlist.filter { !it.isSpotify }
+                val mediaItems = radioTracks.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(track.title)
+                                .setArtist(track.artist)
+                                .build()
+                        )
+                        .build()
                 }
-                player.addListener(object : Player.Listener {
-                    override fun onIsPlayingChanged(isPlaying: Boolean) {
-                        if (isPlaying) startTimer()
+                player.setMediaItems(mediaItems)
+                player.prepare()
+            }
+
+            player.addListener(object : Player.Listener {
+                // BUG CORREGIDO: cancelar el visualizador cuando la reproducción se pause/detenga
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    if (isSpotifyMode) return
+                    if (isPlaying) {
+                        binding.visualizer.startAnimation()
+                        startProgressUpdates()
+                        hideStatus()
+                    } else {
+                        binding.visualizer.stopAnimation()
+                        stopProgressUpdates()
                     }
-                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    updateUI()
+                }
+
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    if (!isSpotifyMode) {
+                        val exoIndex = controller?.currentMediaItemIndex ?: -1
+                        var count = 0
+                        var fullIndex = -1
+                        for (i in playlist.indices) {
+                            if (!playlist[i].isSpotify) {
+                                if (count == exoIndex) {
+                                    fullIndex = i
+                                    break
+                                }
+                                count++
+                            }
+                        }
+                        currentTrackIndex = fullIndex
+                        trackAdapter.setCurrentTrack(currentTrackIndex)
                         updateUI()
                     }
-                })
-            }
+                }
+
+                // BUG NUEVO: Manejo de errores de reproducción/red
+                override fun onPlayerError(error: PlaybackException) {
+                    stopProgressUpdates()
+                    val msg = when {
+                        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
+                            getString(R.string.error_network)
+                        else -> getString(R.string.error_playback)
+                    }
+                    showStatus(msg)
+                    binding.visualizer.stopAnimation()
+                }
+            })
+
             updateUI()
         }, MoreExecutors.directExecutor())
     }
 
-    private fun startTimer() {
-        handler.removeCallbacksAndMessages(null)
-        handler.post(object : Runnable {
-            override fun run() {
-                updateUI()
-                handler.postDelayed(this, visualizerSpeed)
-            }
-        })
-    }
-
     override fun onStop() {
+        stopProgressUpdates()
+        // BUG CORREGIDO: detener el visualizador al ir al background
+        binding.visualizer.stopAnimation()
         MediaController.releaseFuture(controllerFuture)
         super.onStop()
     }
 
-    private fun applyVolumeAndBalance() {
-        val player = controller ?: return
-        val volume = findViewById<SeekBar>(R.id.volume_bar).progress / 100f
-        // In a full implementation, we would use an AudioProcessor for balance
-        player.volume = volume
+    override fun onDestroy() {
+        stopProgressUpdates()
+        if (::spotifyManager.isInitialized) {
+            spotifyManager.disconnect()
+        }
+        super.onDestroy()
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // UI Update
+    // ─────────────────────────────────────────────────────────────────────────
 
     private fun updateUI() {
+        if (isSpotifyMode) return // La interfaz de Spotify se gestiona mediante onPlayerStateChanged
         val player = controller ?: return
         val metadata = player.currentMediaItem?.mediaMetadata
-        
-        val defaultTitle = if (skins[currentSkinIndex] == "CLASSIC") "WINAMP: READY" else getString(R.string.no_track)
-        trackTitle.text = metadata?.title ?: defaultTitle
-        
-        // Handle streaming duration (Media3 returns Long.MAX_VALUE or C.TIME_UNSET for live)
+
+        val defaultTitle = if (skins[currentSkinIndex] == "CLASSIC") "WINAMP: READY"
+                           else getString(R.string.no_track)
+        binding.trackTitle.text = metadata?.title ?: defaultTitle
+
+        // SeekBar — respetar si el usuario está arrastrando
         val duration = player.duration
-        if (duration > 0 && duration < Long.MAX_VALUE / 2) {
-            seekBar.max = duration.toInt()
-            seekBar.progress = player.currentPosition.toInt()
-            seekBar.isEnabled = true
-        } else {
-            seekBar.max = 0
-            seekBar.progress = 0
-            seekBar.isEnabled = false // Disable seeking for live streams
-        }
-        
-        playbackTime.text = formatTime(player.currentPosition)
-
-        val bitrateInfo = findViewById<TextView>(R.id.bitrate_info)
-        if (duration < 0 || duration > Long.MAX_VALUE / 2) {
-            bitrateInfo.text = "LIVE STREAM"
-        } else {
-            bitrateInfo.text = "FLAC 24-bit / 96kHz"
+        if (!userSeekInProgress) {
+            if (duration > 0 && duration < Long.MAX_VALUE / 2) {
+                binding.seekBar.max = duration.toInt()
+                binding.seekBar.progress = player.currentPosition.toInt()
+                binding.seekBar.isEnabled = true
+            } else {
+                binding.seekBar.max = 100
+                binding.seekBar.progress = 0
+                binding.seekBar.isEnabled = false
+            }
+            binding.playbackTime.text = formatTime(player.currentPosition)
         }
 
-        // Status Indicators (Mocked for effect)
-        val accentColor: Int
+        // Info de bitrate / live stream
+        binding.bitrateInfo.text = if (duration < 0 || duration > Long.MAX_VALUE / 2) "LIVE"
+                                   else "128 kbps"
+
+        // Indicadores STEREO / MONO
+        val accentColor = getAccentColor()
         val dimColor = ContextCompat.getColor(this, R.color.rocket_text_dim)
 
-        accentColor = when(skins[currentSkinIndex]) {
-            "CLASSIC" -> ContextCompat.getColor(this, R.color.classic_accent)
-            "MATRIX" -> ContextCompat.getColor(this, R.color.matrix_accent)
-            "CYBER" -> ContextCompat.getColor(this, R.color.cyber_accent)
-            "GOLD" -> ContextCompat.getColor(this, R.color.gold_accent)
-            else -> ContextCompat.getColor(this, R.color.rocket_accent)
-        }
-        
-        tvStereo.setTextColor(if (player.isPlaying) accentColor else dimColor)
-        tvMono.setTextColor(dimColor)
+        binding.tvStereo.setTextColor(if (player.isPlaying) accentColor else dimColor)
+        binding.tvMono.setTextColor(dimColor)
 
-        if (player.isPlaying) {
-            animateVisualizer(accentColor)
-        } else {
-            resetVisualizer()
+        // Visualizador: solo iniciar si está reproduciendo (el stop lo maneja el listener)
+        if (player.isPlaying && !binding.visualizer.isAnimating()) {
+            binding.visualizer.startAnimation()
         }
     }
 
-    private fun animateVisualizer(color: Int) {
-        val visualizer = findViewById<ViewGroup>(R.id.visualizer) ?: return
-        for (i in 0 until visualizer.childCount) {
-            val bar = visualizer.getChildAt(i)
-            bar.setBackgroundColor(color)
-            val params = bar.layoutParams
-            val minHeight = 2
-            val maxHeight = 58
-            params.height = (minHeight..maxHeight).random().toPx()
-            bar.layoutParams = params
-        }
+    private fun getAccentColor(): Int = when (skins[currentSkinIndex]) {
+        "CLASSIC" -> ContextCompat.getColor(this, R.color.classic_accent)
+        "MATRIX"  -> ContextCompat.getColor(this, R.color.matrix_accent)
+        "CYBER"   -> ContextCompat.getColor(this, R.color.cyber_accent)
+        "GOLD"    -> ContextCompat.getColor(this, R.color.gold_accent)
+        else      -> ContextCompat.getColor(this, R.color.rocket_accent)
     }
 
-    private fun resetVisualizer() {
-        val visualizer = findViewById<ViewGroup>(R.id.visualizer) ?: return
-        val dimColor = ContextCompat.getColor(this, R.color.rocket_text_dim)
-        for (i in 0 until visualizer.childCount) {
-            val bar = visualizer.getChildAt(i)
-            bar.setBackgroundColor(dimColor)
-            val params = bar.layoutParams
-            params.height = 2.toPx()
-            bar.layoutParams = params
-        }
+    private fun showStatus(message: String) {
+        binding.tvStatus.text = message
+        binding.tvStatus.visibility = android.view.View.VISIBLE
     }
 
-    private fun Int.toPx(): Int = (this * resources.displayMetrics.density).toInt()
+    private fun hideStatus() {
+        binding.tvStatus.visibility = android.view.View.GONE
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
 
     private fun formatTime(ms: Long): String {
         val seconds = (ms / 1000) % 60
@@ -401,14 +842,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO
+        val permissions = mutableListOf<String>()
+
+        // Permiso de audio
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
+            // Notificaciones (Android 13+)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
         } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
 
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(permission), 100)
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), REQ_PERMISSIONS)
         }
+    }
+
+    companion object {
+        private const val REQ_PERMISSIONS = 100
     }
 }

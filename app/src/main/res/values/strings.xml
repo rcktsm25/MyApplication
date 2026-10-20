@@ -6,4 +6,60 @@
     <string name="bal_label">BAL</string>
     <string name="label_stereo">STEREO</string>
     <string name="label_mono">MONO</string>
+    <!-- Content descriptions (accesibilidad) -->
+    <string name="cd_theme">Cambiar tema</string>
+    <string name="cd_speed">Velocidad del visualizador</string>
+    <string name="cd_prev">Anterior</string>
+    <string name="cd_play">Reproducir</string>
+    <string name="cd_pause">Pausar</string>
+    <string name="cd_stop">Detener</string>
+    <string name="cd_next">Siguiente</string>
+    <string name="cd_add">Añadir estación</string>
+    <!-- Diálogo -->
+    <string name="dialog_add_title">Añadir estación de streaming</string>
+    <string name="dialog_name_hint">Nombre (ej. Mi Radio)</string>
+    <string name="dialog_url_hint">URL (https://...)</string>
+    <string name="dialog_ok">CONECTAR</string>
+    <string name="dialog_cancel">CANCELAR</string>
+    <string name="error_empty_url">La URL no puede estar vacía</string>
+    <string name="stream_default_name">Stream personalizado</string>
+    <string name="stream_user_label">Usuario</string>
+    <string name="toast_speed_turbo">Visualizador: TURBO</string>
+    <string name="toast_speed_chill">Visualizador: CHILL</string>
+    <string name="toast_speed_normal">Visualizador: NORMAL</string>
+    <string name="toast_stream_added">Estación añadida</string>
+    <string name="error_network">Error de red. Verifica la URL.</string>
+    <string name="error_playback">Error de reproducción</string>
+
+    <!-- Login / Sesión -->
+    <string name="login_title">ACCESO AL SISTEMA</string>
+    <string name="login_subtitle">ROCKET AUDIO SYSTEM v1.0</string>
+    <string name="login_username_hint">Usuario / Alias (ej. Samuel)</string>
+    <string name="login_password_hint">Contraseña</string>
+    <string name="login_btn_submit">INICIAR SESIÓN</string>
+    <string name="login_btn_guest">ENTRAR COMO INVITADO</string>
+    <string name="login_remember_me">Recordar sesión</string>
+    <string name="login_error_empty">Por favor completa usuario y contraseña</string>
+    <string name="login_error_invalid">La contraseña debe tener al menos 4 caracteres</string>
+    <string name="login_welcome">Bienvenido a RocketPlayer, %1$s</string>
+    <string name="cd_logout">Cerrar sesión</string>
+    <string name="dialog_logout_title">Cerrar sesión</string>
+    <string name="dialog_logout_message">¿Deseas cerrar tu sesión y volver a la pantalla de acceso?</string>
+    <string name="dialog_logout_confirm">SALIR</string>
+
+    <!-- Spotify Integration -->
+    <string name="cd_spotify">Conexión con Spotify</string>
+    <string name="spotify_dialog_title">CONEXIÓN CON SPOTIFY</string>
+    <string name="spotify_client_id_hint">Client ID (de developer.spotify.com)</string>
+    <string name="spotify_btn_connect">CONECTAR</string>
+    <string name="spotify_btn_disconnect">DESCONECTAR</string>
+    <string name="spotify_status_connected">CONECTADO</string>
+    <string name="spotify_status_disconnected">DESCONECTADO</string>
+    <string name="spotify_status_connecting">CONECTANDO...</string>
+    <string name="spotify_not_installed">La app oficial de Spotify no está instalada en este dispositivo.</string>
+    <string name="spotify_install_prompt">¿Deseas instalar Spotify desde Google Play Store para habilitar la reproducción?</string>
+    <string name="spotify_install_button">INSTALAR SPOTIFY</string>
+    <string name="spotify_toast_connected">¡Spotify conectado exitosamente!</string>
+    <string name="spotify_toast_disconnected">Spotify desconectado</string>
+    <string name="spotify_toast_error">Error al conectar con Spotify</string>
 </resources>

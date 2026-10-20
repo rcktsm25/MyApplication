@@ -9,7 +9,9 @@
     android:padding="4dp"
     tools:context=".MainActivity">
 
-    <!-- RocketPlayer Main Unit -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <!--          ROCKET PLAYER — MAIN UNIT              -->
+    <!-- ═══════════════════════════════════════════════ -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/player_unit"
         android:layout_width="match_parent"
@@ -18,45 +20,66 @@
         android:padding="8dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Title Bar -->
+        <!-- ─── TITLE BAR ─── -->
         <View
             android:id="@+id/title_bar"
             android:layout_width="0dp"
-            android:layout_height="24dp"
+            android:layout_height="22dp"
             android:background="@color/rocket_accent_dim"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- App icon in title bar -->
         <ImageView
             android:id="@+id/rocket_logo"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="6dp"
             android:src="@drawable/ic_rocket"
             app:layout_constraintBottom_toBottomOf="@id/title_bar"
             app:layout_constraintStart_toStartOf="@id/title_bar"
             app:layout_constraintTop_toTopOf="@id/title_bar" />
 
+        <!-- App title -->
         <TextView
             android:id="@+id/app_title_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:text="@string/title_rocket"
             android:textColor="@color/rocket_gold"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.1"
             app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintEnd_toStartOf="@id/btn_spotify"
             app:layout_constraintStart_toEndOf="@id/rocket_logo"
             app:layout_constraintTop_toTopOf="@id/title_bar" />
 
+        <!-- Spotify toggle / connect button -->
         <ImageButton
-            android:id="@+id/btn_theme"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:id="@+id/btn_spotify"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:layout_marginEnd="4dp"
             android:background="@android:color/transparent"
+            android:contentDescription="@string/cd_spotify"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_spotify"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintEnd_toStartOf="@id/btn_theme"
+            app:layout_constraintTop_toTopOf="@id/title_bar" />
+
+        <!-- Theme toggle button -->
+        <ImageButton
+            android:id="@+id/btn_theme"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/cd_theme"
             android:scaleType="fitCenter"
             android:src="@android:drawable/ic_menu_manage"
             app:layout_constraintBottom_toBottomOf="@id/title_bar"
@@ -64,133 +87,190 @@
             app:layout_constraintTop_toTopOf="@id/title_bar"
             app:tint="@color/rocket_gold" />
 
+        <!-- Visualizer speed toggle -->
         <ImageButton
             android:id="@+id/btn_speed"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="8dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="4dp"
             android:background="@android:color/transparent"
+            android:contentDescription="@string/cd_speed"
             android:scaleType="fitCenter"
             android:src="@android:drawable/ic_lock_idle_alarm"
+            app:layout_constraintBottom_toBottomOf="@id/title_bar"
+            app:layout_constraintEnd_toStartOf="@id/btn_logout"
+            app:layout_constraintTop_toTopOf="@id/title_bar"
+            app:tint="@color/rocket_gold" />
+
+        <!-- Logout button -->
+        <ImageButton
+            android:id="@+id/btn_logout"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="6dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/cd_logout"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_lock_power_off"
             app:layout_constraintBottom_toBottomOf="@id/title_bar"
             app:layout_constraintEnd_toEndOf="@id/title_bar"
             app:layout_constraintTop_toTopOf="@id/title_bar"
             app:tint="@color/rocket_gold" />
 
-        <!-- Display -->
+        <!-- ─── DISPLAY PANEL ─── -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/display_container"
             android:layout_width="0dp"
-            android:layout_height="130dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/rocket_display_frame"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title_bar">
 
-            <!-- Visualizer -->
-            <LinearLayout
+            <!-- Visualizer bars (custom view) -->
+            <com.example.myapplication.VisualizerView
                 android:id="@+id/visualizer"
-                android:layout_width="120dp"
-                android:layout_height="60dp"
+                android:layout_width="130dp"
+                android:layout_height="55dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:gravity="bottom"
+                android:layout_marginTop="6dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-                <!-- 16 bars for more detail -->
-                <View android:layout_width="4dp" android:layout_height="5dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="15dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="25dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="35dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="45dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="30dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="20dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="10dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="5dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="15dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="25dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="40dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="20dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-                <View android:layout_width="4dp" android:layout_height="10dp" android:layout_margin="1dp" android:background="@color/rocket_accent" />
-            </LinearLayout>
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Status Indicators -->
+            <!-- STEREO / MONO indicators -->
             <LinearLayout
                 android:id="@+id/status_indicators"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
-                <TextView android:id="@+id/tv_stereo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_stereo" android:textColor="@color/rocket_text_dim" android:textSize="8sp" android:layout_marginEnd="4dp"/>
-                <TextView android:id="@+id/tv_mono" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_mono" android:textColor="@color/rocket_text_dim" android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/tv_stereo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_stereo"
+                    android:textColor="@color/rocket_text_dim"
+                    android:textSize="8sp"
+                    android:fontFamily="monospace" />
+
+                <TextView
+                    android:id="@+id/tv_mono"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_mono"
+                    android:textColor="@color/rocket_text_dim"
+                    android:textSize="8sp"
+                    android:fontFamily="monospace" />
             </LinearLayout>
 
+            <!-- Playback time (big clock) -->
             <TextView
                 android:id="@+id/playback_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
+                android:layout_marginEnd="10dp"
                 android:fontFamily="monospace"
                 android:text="00:00"
                 android:textColor="@color/rocket_accent"
-                android:textSize="36sp"
+                android:textSize="34sp"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/status_indicators" />
 
+            <!-- Track title with marquee -->
             <TextView
                 android:id="@+id/track_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:ellipsize="marquee"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
                 android:text="@string/no_track"
                 android:textColor="@color/rocket_gold"
-                android:textSize="14sp"
+                android:textSize="13sp"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/playback_time" />
 
-            <TextView
-                android:id="@+id/sample_rate_info"
-                android:layout_width="wrap_content"
+            <!-- Bottom info row -->
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
                 android:layout_marginStart="8dp"
-                android:text="44 kHz"
-                android:textColor="@color/rocket_text_dim"
-                android:textSize="10sp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent">
 
-            <TextView
-                android:id="@+id/bitrate_info"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginStart="8dp"
-                android:text="128 kbps"
-                android:textColor="@color/rocket_text_dim"
-                android:textSize="10sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/sample_rate_info" />
+                <TextView
+                    android:id="@+id/sample_rate_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="44 kHz"
+                    android:textColor="@color/rocket_text_dim"
+                    android:textSize="9sp"
+                    android:fontFamily="monospace" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:text="·"
+                    android:textColor="@color/rocket_text_dim"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/bitrate_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="128 kbps"
+                    android:textColor="@color/rocket_text_dim"
+                    android:textSize="9sp"
+                    android:fontFamily="monospace" />
+
+                <!-- Error / status message -->
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="#FF4444"
+                    android:textSize="9sp"
+                    android:fontFamily="monospace"
+                    android:visibility="gone" />
+
+                <!-- Spotify Active Badge -->
+                <TextView
+                    android:id="@+id/tv_spotify_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="SPOTIFY"
+                    android:textColor="#1ED760"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace"
+                    android:visibility="gone" />
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Seek Bar -->
+        <!-- ─── SEEK BAR ─── -->
         <SeekBar
             android:id="@+id/seek_bar"
             android:layout_width="0dp"
             android:layout_height="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:progressDrawable="@drawable/rocket_seekbar_progress"
             android:thumb="@drawable/rocket_thumb"
             android:splitTrack="false"
@@ -198,22 +278,31 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/display_container" />
 
-        <!-- Extra Sliders -->
+        <!-- ─── VOLUME & BALANCE SLIDERS ─── -->
         <LinearLayout
             android:id="@+id/extra_sliders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@id/seek_bar">
 
+            <!-- Balance -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/bal_label" android:textColor="@color/rocket_silver" android:textSize="8sp" />
+
+                <TextView
+                    android:layout_width="22dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/bal_label"
+                    android:textColor="@color/rocket_silver"
+                    android:textSize="8sp"
+                    android:fontFamily="monospace" />
+
                 <SeekBar
                     android:id="@+id/balance_bar"
                     android:layout_width="match_parent"
@@ -225,14 +314,23 @@
                     android:splitTrack="false" />
             </LinearLayout>
 
+            <!-- Volume -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="12dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/vol_label" android:textColor="@color/rocket_silver" android:textSize="8sp" />
+
+                <TextView
+                    android:layout_width="22dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vol_label"
+                    android:textColor="@color/rocket_silver"
+                    android:textSize="8sp"
+                    android:fontFamily="monospace" />
+
                 <SeekBar
                     android:id="@+id/volume_bar"
                     android:layout_width="match_parent"
@@ -245,23 +343,65 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Controls -->
+        <!-- ─── PLAYBACK CONTROLS ─── -->
         <LinearLayout
             android:id="@+id/main_controls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:orientation="horizontal"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/extra_sliders">
 
-            <ImageButton android:id="@+id/btn_prev" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@android:drawable/ic_media_previous" app:tint="#000000" />
-            <ImageButton android:id="@+id/btn_play" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_play" />
-            <ImageButton android:id="@+id/btn_pause" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_pause" />
-            <ImageButton android:id="@+id/btn_stop" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@drawable/ic_winamp_stop" />
-            <ImageButton android:id="@+id/btn_next" android:layout_width="40dp" android:layout_height="40dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:src="@android:drawable/ic_media_next" app:tint="#000000" />
+            <ImageButton
+                android:id="@+id/btn_prev"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:contentDescription="@string/cd_prev"
+                android:src="@android:drawable/ic_media_previous"
+                app:tint="#000000" />
+
+            <ImageButton
+                android:id="@+id/btn_play"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:contentDescription="@string/cd_play"
+                android:src="@drawable/ic_winamp_play" />
+
+            <ImageButton
+                android:id="@+id/btn_pause"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:contentDescription="@string/cd_pause"
+                android:src="@drawable/ic_winamp_pause" />
+
+            <ImageButton
+                android:id="@+id/btn_stop"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:contentDescription="@string/cd_stop"
+                android:src="@drawable/ic_winamp_stop" />
+
+            <ImageButton
+                android:id="@+id/btn_next"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:contentDescription="@string/cd_next"
+                android:src="@android:drawable/ic_media_next"
+                app:tint="#000000" />
         </LinearLayout>
 
+        <!-- Shuffle / Repeat toggles -->
         <LinearLayout
             android:id="@+id/extra_controls"
             android:layout_width="wrap_content"
@@ -271,48 +411,78 @@
             app:layout_constraintBottom_toBottomOf="@id/main_controls"
             app:layout_constraintStart_toEndOf="@id/main_controls"
             app:layout_constraintTop_toTopOf="@id/main_controls">
-            <ToggleButton android:id="@+id/btn_shuffle" android:layout_width="36dp" android:layout_height="36dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:textOff="SHF" android:textOn="SHF" android:textColor="#000000" android:textSize="8sp" />
-            <ToggleButton android:id="@+id/btn_repeat" android:layout_width="36dp" android:layout_height="36dp" android:layout_margin="2dp" android:background="@drawable/winamp_button_bg" android:textOff="REP" android:textOn="REP" android:textColor="#000000" android:textSize="8sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_shuffle"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:textOff="SHF"
+                android:textOn="SHF"
+                android:textColor="#000000"
+                android:textSize="7sp"
+                android:textStyle="bold" />
+
+            <ToggleButton
+                android:id="@+id/btn_repeat"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_margin="2dp"
+                android:background="@drawable/winamp_button_bg"
+                android:textOff="REP"
+                android:textOn="REP"
+                android:textColor="#000000"
+                android:textSize="7sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Playlist Unit -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <!--          FLIGHT DECK — PLAYLIST UNIT            -->
+    <!-- ═══════════════════════════════════════════════ -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/playlist_unit"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:background="@drawable/rocket_frame"
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/player_unit">
 
+        <!-- Playlist header -->
         <TextView
             android:id="@+id/playlist_header"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:background="@color/rocket_accent_dim"
-            android:paddingStart="8dp"
             android:gravity="center_vertical"
-            android:text="FLIGHT DECK - PLAYLIST"
+            android:paddingStart="8dp"
+            android:text="FLIGHT DECK — PLAYLIST"
             android:textColor="@color/rocket_gold"
             android:textSize="10sp"
             android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.08"
             app:layout_constraintEnd_toStartOf="@id/btn_add_stream"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Add stream button -->
         <ImageButton
             android:id="@+id/btn_add_stream"
             android:layout_width="32dp"
             android:layout_height="24dp"
             android:background="@color/rocket_accent_dim"
+            android:contentDescription="@string/cd_add"
             android:src="@android:drawable/ic_menu_add"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/rocket_gold" />
 
+        <!-- Playlist RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_playlist"
             android:layout_width="match_parent"
@@ -320,7 +490,7 @@
             android:layout_marginTop="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/playlist_header"
-            tools:listitem="@android:layout/simple_list_item_1" />
+            tools:listitem="@layout/item_track" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
