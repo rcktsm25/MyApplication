@@ -17,6 +17,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["redirectSchemeName"] = "rocketplayer"
+        manifestPlaceholders["redirectHostName"] = "spotify-callback"
     }
 
     buildTypes {
@@ -51,6 +53,7 @@ dependencies {
 
     // Spotify App Remote SDK & Gson
     implementation(files("libs/spotify-app-remote-release-0.8.0.aar"))
+    implementation(libs.spotify.auth)
     implementation(libs.google.gson)
 
     testImplementation(libs.junit)

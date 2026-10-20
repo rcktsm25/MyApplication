@@ -16,6 +16,7 @@ gson = "2.10.1"
 
 [libraries]
 google-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+spotify-auth = { group = "com.spotify.android", name = "auth", version = "2.1.2" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

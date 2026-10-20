@@ -367,6 +367,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 Toast.makeText(this, getString(R.string.spotify_status_connecting), Toast.LENGTH_SHORT).show()
                 spotifyManager.connect(
+                    activity = this,
                     onSuccess = {
                         runOnUiThread {
                             Toast.makeText(this, getString(R.string.spotify_toast_connected), Toast.LENGTH_SHORT).show()
@@ -539,9 +540,10 @@ class MainActivity : AppCompatActivity() {
             if (!spotifyManager.isConnected()) {
                 Toast.makeText(this, getString(R.string.spotify_status_connecting), Toast.LENGTH_SHORT).show()
                 spotifyManager.connect(
+                    activity = this,
                     onSuccess = {
                         runOnUiThread {
-                            spotifyManager.play(track.uri)
+                            spotifyManager.play(track.uri, this)
                         }
                     },
                     onFailure = {
@@ -551,7 +553,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 )
             } else {
-                spotifyManager.play(track.uri)
+                spotifyManager.play(track.uri, this)
             }
         } else {
             // Modo Radio / ExoPlayer
@@ -867,6 +869,44 @@ class MainActivity : AppCompatActivity() {
 
         if (permissions.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, permissions.toTypedArray(), REQ_PERMISSIONS)
+        }
+    }
+
+    /**
+     * Recibe la respuesta del flujo de autenticación de Spotify.
+     * Al concederse el token de autorización, conecta automáticamente el SpotifyAppRemote.
+     */
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SpotifyManager.REQUEST_CODE_SPOTIFY_AUTH) {
+            val response = com.spotify.sdk.android.auth.AuthorizationClient.getResponse(resultCode, data)
+            when (response.type) {
+                com.spotify.sdk.android.auth.AuthorizationResponse.Type.TOKEN -> {
+                    spotifyManager.connect(
+                        activity = this,
+                        onSuccess = {
+                            runOnUiThread {
+                                Toast.makeText(this, getString(R.string.spotify_toast_connected), Toast.LENGTH_SHORT).show()
+                                if (currentTrackIndex in playlist.indices && playlist[currentTrackIndex].isSpotify) {
+                                    spotifyManager.play(playlist[currentTrackIndex].uri, this)
+                                }
+                            }
+                        },
+                        onFailure = { error ->
+                            runOnUiThread {
+                                showStatus("Spotify: ${error.localizedMessage}")
+                            }
+                        }
+                    )
+                }
+                com.spotify.sdk.android.auth.AuthorizationResponse.Type.ERROR -> {
+                    showStatus("Error auth Spotify: ${response.error}")
+                }
+                else -> {
+                    // Cancelado por el usuario
+                }
+            }
         }
     }
 

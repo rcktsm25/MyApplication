@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -9,6 +10,9 @@ import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.client.Subscription
 import com.spotify.protocol.types.PlayerState
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import com.spotify.sdk.android.auth.AuthorizationResponse
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -44,6 +48,11 @@ class SpotifyManager(private val context: Context) {
 
     companion object {
         private const val TAG = "SpotifyManager"
+
+        /**
+         * Código de solicitud para el flujo de autorización de Spotify.
+         */
+        const val REQUEST_CODE_SPOTIFY_AUTH = 1337
 
         /**
          * Esquema y host de redirección registrado en el Dashboard de Spotify.
@@ -126,12 +135,32 @@ class SpotifyManager(private val context: Context) {
     }
 
     /**
+     * Lanza la pantalla de autorización oficial de Spotify (Spotify Auth SDK).
+     * Esto le pide al usuario explícitamente autorizar la app con los permisos
+     * necesarios ("app-remote-control", "streaming").
+     */
+    fun requestUserAuthorization(activity: Activity) {
+        val builder = AuthorizationRequest.Builder(
+            getClientId(),
+            AuthorizationResponse.Type.TOKEN,
+            REDIRECT_URI
+        )
+        builder.setScopes(arrayOf("app-remote-control", "streaming", "playlist-read-private"))
+        val request = builder.build()
+        AuthorizationClient.openLoginActivity(activity, REQUEST_CODE_SPOTIFY_AUTH, request)
+    }
+
+    /**
      * Inicia el proceso de conexión con la aplicación de Spotify.
+     * Si Spotify requiere autorización explícita del usuario, lanzará
+     * automáticamente el flujo de diálogo de autorización de Spotify.
      *
+     * @param activity Actividad opcional para lanzar el flujo de autorización visual si es necesario.
      * @param onSuccess Callback ejecutado al conectar exitosamente.
      * @param onFailure Callback ejecutado si la conexión falla o el usuario no autoriza.
      */
     fun connect(
+        activity: Activity? = null,
         onSuccess: (() -> Unit)? = null,
         onFailure: ((Throwable) -> Unit)? = null
     ) {
@@ -170,9 +199,21 @@ class SpotifyManager(private val context: Context) {
                 override fun onFailure(throwable: Throwable) {
                     Log.e(TAG, "Error al conectar con Spotify", throwable)
                     spotifyAppRemote = null
-                    onFailure?.invoke(throwable)
-                    onError?.invoke(throwable)
-                    onConnectionStatusChanged?.invoke(false)
+
+                    // Si el error indica que se requiere autorización explícita del usuario
+                    val isAuthRequired = throwable.message?.contains("Explicit user authorization", ignoreCase = true) == true ||
+                                         throwable is com.spotify.android.appremote.api.error.UserNotAuthorizedException
+
+                    if (isAuthRequired && activity != null) {
+                        Log.d(TAG, "Lanzando pantalla de autorización explícita de Spotify...")
+                        activity.runOnUiThread {
+                            requestUserAuthorization(activity)
+                        }
+                    } else {
+                        onFailure?.invoke(throwable)
+                        onError?.invoke(throwable)
+                        onConnectionStatusChanged?.invoke(false)
+                    }
                 }
             }
         )
@@ -221,10 +262,10 @@ class SpotifyManager(private val context: Context) {
      * También acepta enlaces web de Spotify (open.spotify.com/...) convirtiéndolos
      * automáticamente al formato de URI nativo (`spotify:track:...`).
      */
-    fun play(uriOrUrl: String) {
+    fun play(uriOrUrl: String, activity: Activity? = null) {
         val uri = convertUrlToUri(uriOrUrl)
         if (!isConnected()) {
-            connect(onSuccess = {
+            connect(activity = activity, onSuccess = {
                 spotifyAppRemote?.playerApi?.play(uri)
             })
         } else {
