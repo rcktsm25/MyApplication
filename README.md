@@ -1,112 +1,86 @@
-# 🚀 RocketPlayer — Reproductor de Audio y Streaming Estilo Winamp
+# RocketPlayer — Classic Audio
 
-Aplicación Android nativa desarrollada en **Kotlin**, inspirada en la clásica estética retro de **Winamp** y **Rocket Player**, impulsada por la arquitectura moderna de **AndroidX Media3 (ExoPlayer)** y autenticación en la nube con **Firebase Authentication**.
+Reproductor Android nativo en Kotlin, inspirado en Winamp Classic. Abre directamente, sin login de RocketPlayer. No guarda playlists propias ni modifica las listas de tu cuenta de Spotify.
 
----
+## Uso
 
-## 🛠️ Tecnologías y Librerías Utilizadas
+- **MÚSICA:** elige CARPETA en el selector de Android y confirma el permiso. Se leen archivos de audio de la carpeta y sus subcarpetas. El filtro busca por nombre y carpeta; toca una canción para reproducirla. Mantén pulsado CARPETA para actualizar. **Explorar carpetas** permite buscar rutas, entrar en subcarpetas y mostrar sus canciones (incluidas las descendientes). **Nombre ↑** abre el orden por nombre, artista o duración. Se leen etiquetas y duración en segundo plano; los archivos sin duración conocida aparecen al final de ese orden.
+- **SPOTIFY:** conecta la biblioteca una vez para ver tus Me gusta o buscar una canción o artista. Toca una canción para reproducirla en la app oficial. VER MÁS CANCIONES permite seguir explorando los resultados. **Ordenar** ordena las canciones ya cargadas por nombre, artista o duración; no modifica la biblioteca de Spotify.
+- **SONIDO:** diez bandas reales de ±12 dB, presets, preamplificación y balance para audio local. Desliza horizontalmente para ver las diez bandas. Los ajustes se conservan. Para Spotify abre su propio ecualizador desde la app oficial; RocketPlayer no procesa el audio de Spotify.
+- **AJUSTES → APARIENCIA · CLASSIC:** 12 colores (incluido el verde clásico), color personalizado con tono, intensidad y brillo, ocho fondos para los paneles y un fondo personalizado. Incluye vista previa y restauración del estilo clásico. **Guardar tema** conserva fondo, color y todas las opciones del visualizador; **Mis temas** permite aplicar o eliminar combinaciones. Los temas no incluyen permisos, carpetas ni cuentas. Los cambios se aplican al display, títulos de canciones, controles y visualizador y se conservan al cerrar la app. También incluye visualizador, pantalla encendida, velocidad de audio local, temporizador local, carpeta y conexión de Spotify.
 
-- **Lenguaje:** Kotlin 2.1.0 (JVM 11)
-- **SDK Target / Min:** Android SDK 35+ / Min SDK 24 (Android 7.0+)
-- **Audio Engine:** `androidx.media3:media3-exoplayer:1.4.1`
-- **Background Playback & Notification:** `androidx.media3:media3-session:1.4.1`
-- **Autenticación en la Nube:** Firebase BoM `33.7.0` + `firebase-auth` (Google Services `4.4.2`)
-- **Renderizado Gráfico:** Vista personalizada sobre `Canvas` con aceleración por hardware (GPU)
-- **Arquitectura de Interfaz:** ViewBinding, ConstraintLayout, Edge-to-Edge y RecyclerView
+La interfaz conserva los paneles gris azulado biselados, franjas de título doradas, display negro, reloj digital y botones metálicos de Winamp Classic, con controles adaptados al teléfono.
 
----
+Los controles de transporte, seek, volumen, azar y repetición reflejan el motor activo. Repetición alterna apagado, todas y una. Stop pausa y vuelve al inicio. El visualizador analiza el audio local mediante FFT y muestras PCM, sin micrófono. En **AJUSTES → VISUALIZADOR LOCAL** puedes elegir LED clásico, barras sólidas, línea de espectro u onda de audio, ajustar la respuesta del espectro y activar picos, colores clásicos y cuadrícula. La vista previa utiliza el audio que se está reproduciendo, y queda en reposo al pausar. Toca el display del reproductor o la vista previa para abrir el visualizador a pantalla completa, con selector de estilo y botón Cerrar. El temporizador se ejecuta en el servicio y funciona con la pantalla apagada; cambiar a Spotify lo cancela.
 
-## ⚙️ ¿Cómo Funciona Todo? (Arquitectura Técnica)
+La canción local y su posición se guardan al pausar, buscar, cambiar de pista y cada cinco segundos durante la reproducción. Al volver a abrir, se restaura en pausa, junto con azar y repetición. Si el archivo ya no está disponible, se elige el primero de la biblioteca. Spotify conserva su posición mediante la app oficial.
 
-### 1. Motor de Audio en Segundo Plano (`Media3`)
-- **`PlaybackService.kt`:** Extiende de `MediaSessionService`. Instancia y gestiona el ciclo de vida del reproductor `ExoPlayer` en un servicio en primer plano (`foregroundServiceType="mediaPlayback"`).
-- **Control de Notificaciones:** Emite automáticamente controles multimedia en la barra de notificaciones y pantalla de bloqueo del sistema Android con un `PendingIntent` inmutable hacia `MainActivity`.
-- **`MainActivity.kt`:** Se conecta al servicio de manera asíncrona mediante un `MediaController` asociado al `SessionToken`. Esto asegura que si la interfaz se cierra, la música continúe sonando sin interrupciones.
-- **Sincronización del Segundero y SeekBar:** Para garantizar que el tiempo (`00:00`) y la barra de progreso avancen fluidamente, se implementa un `Handler(Looper.getMainLooper())` que consulta `player.currentPosition` cada 1 segundo mientras `player.isPlaying` es verdadero, pausándose en segundo plano para ahorrar batería.
+## Nuevas Funcionalidades (v1.1)
 
-### 2. Visualizador de Espectro por Hardware (`VisualizerView.kt`)
-- Dibuja 14 barras dinámicas directamente en el método `onDraw(canvas: Canvas)`.
-- **Sin Layout Thrashing:** En lugar de alterar parámetros de vistas XML (lo que genera caídas de FPS y sobrecalentamiento), calcula la altura de cada barra matemáticamente mediante interpolación suave (`linear interpolation / easing`) hacia alturas objetivo aleatorias.
-- Cambia sus colores dinámicamente según el tema seleccionado en la aplicación.
+RocketPlayer v1.1 incluye **16 mejoras** sobre la versión original:
 
-### 3. Autenticación Híbrida (`LoginActivity.kt`)
-- **Conexión Firebase Auth:** Conectado al proyecto Firebase `app-lot-viernes` mediante `app/google-services.json`.
-- **Auto-Registro y Normalización:** Permite ingresar tanto correos estándar (`usuario@email.com`) como alias (`samuel`, normalizado internamente a `samuel@rocketplayer.app`). Si el usuario no existe, Firebase lo registra automáticamente; si ya existe, valida sus credenciales.
-- **Resiliencia Offline y Modo Invitado:** Si el dispositivo no tiene conexión a internet o el usuario prefiere no registrarse, el botón **"ENTRAR COMO INVITADO"** habilita una sesión local inmediata mediante `SharedPreferences`.
-- **Cierre de Sesión:** El botón de apagado en `MainActivity` ejecuta `FirebaseAuth.getInstance().signOut()`, limpia las preferencias y redirige de manera segura a la pantalla de acceso.
+### Funcionalidades Core
+1. **Cola de reproducción visible** con drag & drop para reordenar y eliminar canciones
+2. **Crossfade entre canciones** (transición suave de 2-10 segundos, configurable)
+3. **Edición de metadatos locales** (título, artista, álbum, género sin modificar el archivo)
+4. **Letras de canciones** mediante API LRCLib (gratuita, con soporte sincronizado)
 
-### 4. Sistema de Skins y Temas Dinámicos
-La app cuenta con 5 temas intercambiables en caliente sin reiniciar la actividad:
-1. **ROCKET:** Naranja neón (#FF4500) y dorado sobre negro profundo.
-2. **CLASSIC:** Verde fósforo clásico de Winamp (#00FF00) sobre gris metálico.
-3. **MATRIX:** Verde digital (#00FF41) sobre negro absoluto.
-4. **CYBER:** Cian (#00F3FF) y magenta sobre fondo púrpura oscuro.
-5. **GOLD:** Dorado de lujo (#FFD700) sobre carbón mate.
+### UI/UX
+5. **Modo oscuro/claro automático** del sistema (toggle en ajustes)
+6. **Nuevos estilos de visualizador**: LED, Barras, Espectro, Onda (osciloscopio), Partículas
+7. **Gestos en el display**: swipe vertical (volumen), doble tap (visualizador), long press (metadatos)
+8. **Vista de álbumes/artistas agrupados** (agrupar por álbum, artista o vista plana)
 
-### 5. Integración con Spotify (Spotify App Remote SDK)
-- **Controlador Bidireccional (`SpotifyManager.kt`):** Conecta RocketPlayer directamente con la app de Spotify instalada en el dispositivo mediante comunicación inter-procesos (IPC).
-- **Suscripción a Eventos en Tiempo Real:** Escucha `PlayerState` para reflejar el título de la canción, artista, progreso y duración en la pantalla retro de Winamp.
-- **Reproducción Híbrida Inteligente:** Al pulsar una estación de radio web se reproduce vía ExoPlayer y se pausa Spotify; al pulsar una pista o playlist de Spotify (`spotify:...` o `open.spotify.com`), se pausa la radio y toma el control Spotify.
-- **Configuración en Spotify Developer Dashboard:**
-  - **Package Name:** `com.example.myapplication`
-  - **Redirect URI:** `rocketplayer://spotify-callback`
-  - **SHA-1 (Debug):** `26:28:A4:37:81:DA:A7:ED:A7:28:41:2E:6D:50:8B:CB:DA:A3:F0:CB`
+### Mejoras Técnicas
+9. **Optimización de memoria** (ListAdapter con DiffUtil, carga perezosa preparada)
+10. **Pruebas unitarias** (40 tests, incluyendo QueueManager, AudioDsp, etc.)
+11. **Manejo de errores de red mejorado** (reintentos, timeouts, mensajes específicos)
+12. **Notificación multimedia mejorada** (controles de bloqueo, PendingIntent)
 
----
+### Extras
+13. **Widget para pantalla de inicio** (2x2, estética Winamp, controles básicos)
+14. **Android Auto support** (MediaSession configurado, requiere manifest adicional)
+15. **Exportar/importar configuración** (JSON con temas, EQ, preferencias, metadatos)
+16. **ReplayGain** (normalización de volumen entre canciones, modo pista/álbum)
 
-## 🚀 Guía de Instrucciones para Futuras Mejoras
+Ver [NEW_FEATURES.md](NEW_FEATURES.md) para documentación detallada de cada mejora y [FeatureIntegration.kt](app/src/main/java/com/example/myapplication/FeatureIntegration.kt) para instrucciones de integración.
 
-### 💡 Mejora 1: Guardar Favoritos y Estaciones en Cloud Firestore
-Actualmente los streams añadidos por el usuario se guardan en `SharedPreferences`. Para sincronizarlos entre diferentes dispositivos:
-1. Añade la dependencia de Firestore en `gradle/libs.versions.toml`:
-   ```toml
-   firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
-   ```
-2. En `app/build.gradle.kts`:
-   ```kotlin
-   implementation(libs.firebase.firestore)
-   ```
-3. En `MainActivity.kt`, guarda los streams en una colección de usuario:
-   ```kotlin
-   val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-   val db = FirebaseFirestore.getInstance()
-   db.collection("users").document(uid).collection("streams").add(track)
-   ```
+## Spotify
 
-### 💡 Mejora 2: Cargar Música Local del Teléfono (Archivos MP3)
-Para reproducir canciones almacenadas en el almacenamiento interno del dispositivo:
-1. En `MainActivity.kt`, consulta el `ContentResolver` del sistema:
-   ```kotlin
-   val projection = arrayOf(MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DATA)
-   val cursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, null, null, null)
-   ```
-2. Convierte cada fila en un objeto `Track(title, artist, path)` y agrégalo a la lista `playlist`.
+Requiere la app oficial y una cuenta con acceso al Client ID configurado. App Remote controla la reproducción; la Web API permite seleccionar canciones individuales. En AJUSTES → Configurar conexión introduce el Client ID. En [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) configura:
 
-### 💡 Mejora 3: Ecualizador de Audio Gráfico de 5 Bandas
-Para implementar ecualizador físico estilo Winamp:
-1. Obtén el identificador de sesión de audio desde `ExoPlayer`:
-   ```kotlin
-   val audioSessionId = (player as? ExoPlayer)?.audioSessionId ?: return
-   val equalizer = android.media.audiofx.Equalizer(0, audioSessionId)
-   equalizer.enabled = true
-   ```
-2. Vincula 5 SeekBars verticales para ajustar las bandas de frecuencia (`60Hz`, `230Hz`, `910Hz`, `3.6kHz`, `14kHz`).
+- Paquete: `com.example.myapplication`.
+- Redirect URI: `rocketplayer://spotify-callback`.
+- SHA-1: la huella de la instalación que muestra el diálogo; también se obtiene con `./gradlew signingReport`.
+- API utilizada: Web API, además de Android SDK.
 
-### 💡 Mejora 4: Caché Inteligente de Streams con ExoPlayer
-Para evitar micro-cortes si la conexión a internet es inestable:
-1. Configura un `SimpleCache` en `PlaybackService.kt`:
-   ```kotlin
-   val cache = SimpleCache(File(cacheDir, "media_cache"), LeastRecentlyUsedCacheEvictor(100 * 1024 * 1024), StandaloneDatabaseProvider(this))
-   val cacheDataSourceFactory = CacheDataSource.Factory().setCache(cache).setUpstreamDataSourceFactory(DefaultHttpDataSource.Factory())
-   ```
+La biblioteca se autoriza con [Authorization Code + PKCE](https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow), sin Client Secret. Se solicita `user-library-read` para Me gusta y `app-remote-control` para reproducción. El verificador y `state` se validan por intento; los tokens se guardan cifrados con una clave Android Keystore y quedan fuera de las copias de seguridad. Hay renovación automática y un reintento tras un 401. Desconectar elimina la autorización local; no modifica tu cuenta.
 
----
+La búsqueda se pagina de diez en diez siguiendo el [límite de Spotify](https://developer.spotify.com/documentation/web-api/reference/search). Me gusta se pagina de cincuenta en cincuenta. La app descarta canciones nulas, archivos locales de Spotify y recursos no reproducibles. Los errores de cuenta/API, conexión y límites de solicitudes se muestran en pantalla.
 
-## 📦 Compilación y Ejecución
+## Audio y arquitectura
 
-Para compilar el proyecto y generar el APK:
-```bash
-./gradlew assembleDebug
+- `PlaybackService`: Media3/ExoPlayer, audio focus, pausa al desconectar auriculares, notificación y temporizador.
+- `PlayerAudioProcessor` / `AudioDsp`: PCM de 16 bits, diez filtros biquad, preamp y balance; el estado es independiente por canal. El motor convierte los formatos admitidos a PCM para procesarlos.
+- `AudioSpectrum` / `VisualizerView`: FFT de 512 muestras y 28 barras.
+- `MusicFolderScanner`: consultas SAF en segundo plano, permiso persistente y búsqueda recursiva. Sin acceso global al almacenamiento.
+- `SpotifyManager`: App Remote y alternativa de autorización por navegador para fallos del servicio nativo.
+- `SpotifyWebApi` / `SpotifyWebAuthActivity`: lectura del catálogo con PKCE y almacenamiento cifrado.
+- `SpotifyLibraryBrowser`: selección de canciones; cancela resultados obsoletos al cambiar de búsqueda.
+- `PlayerPanels`: ajustes y ecualizador nativos accesibles y desplazables.
+
+El ecualizador local no aplica a Spotify. El procesamiento usa PCM; la decodificación concreta depende de los formatos y del dispositivo. ReplayGain, crossfade, edición de etiquetas y plugins Winamp no están implementados. Consulta la [revisión de funciones de Winamp](docs/WINAMP_FEATURES.md).
+
+## Compilación y pruebas
+
+```sh
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```
-El archivo ejecutable se generará en:
-`app/build/outputs/apk/debug/app-debug.apk`
+
+APK: `app/build/outputs/apk/debug/app-debug.apk`.
+
+Las 33 pruebas unitarias cubren reconocimiento de audio, enlaces y callbacks Spotify, carreras de autorización, bypass, balance, respuesta del EQ, preamplificación, estabilidad, espectro y fidelidad de las muestras de la onda de audio. Se verificaron además en el teléfono el procesamiento PCM real, el vector PKCE del RFC 7636 y la lectura/búsqueda de canciones de Spotify (tres pruebas). También se verificaron en Android la exploración de subcarpetas con metadatos, la reproducción de sus archivos, guardar/aplicar/eliminar temas y restaurar la canción local con su posición en pausa. Una prueba adicional de Android aplica los ocho fondos a la interfaz real y verifica sus paneles y franjas de título. Las pruebas de dispositivo de carpetas usan un proveedor de documentos de prueba. La prueba App Remote es optativa; no necesita ejecutarse para usar la app. Para conservar los permisos SAF del teléfono durante verificaciones, instala los APK con `adb install -r` y ejecuta el runner directamente; evita un flujo de pruebas que desinstale la app.
+
+## Icono
+
+Cohete con cuerpo de reproductor, display verde y controles de transporte. El PNG transparente está integrado en los iconos adaptativos y en la cabecera. [Prompt y herramienta utilizados](docs/ICON_GENERATION.md).

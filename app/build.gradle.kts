@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.services)
 }
 
 android {
@@ -22,10 +21,16 @@ android {
     }
 
     buildTypes {
+        // Release: minificación con R8 + reducción de recursos + ofuscación
+        // Esto hace el APK más pequeño y difícil de decompilar
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        // Debug: sin minificación para iteración rápida durante desarrollo
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -33,30 +38,48 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        // ViewBinding — genera clases seguras para acceder a vistas del XML
+        // Elimina la necesidad de findViewById() y previene crashes por IDs inválidos
         viewBinding = true
     }
 }
 
 dependencies {
+    // ═══════════════════════════════════════════════════════════════
+    // Core Android — componentes base del sistema
+    // ═══════════════════════════════════════════════════════════════
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.session)
-    implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
 
-    // Firebase Authentication
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
+    // ═══════════════════════════════════════════════════════════════
+    // Media3 (ExoPlayer) — motor de reproducción de audio local
+    // Maneja decoding PCM, ecualización biquad, y cola de medios
+    // ═══════════════════════════════════════════════════════════════
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.ui)
 
-    // Spotify App Remote SDK & Gson
+    // ═══════════════════════════════════════════════════════════════
+    // Spotify — SDKs oficiales para auth y control de reproducción
+    // ═══════════════════════════════════════════════════════════════
     implementation(files("libs/spotify-app-remote-release-0.8.0.aar"))
     implementation(libs.spotify.auth)
+    implementation(libs.androidx.browser)
+
+    // ═══════════════════════════════════════════════════════════════
+    // Gson — serialización/deserialización JSON para tokens y config
+    // ═══════════════════════════════════════════════════════════════
     implementation(libs.google.gson)
 
+    // ═══════════════════════════════════════════════════════════════
+    // Testing — solo se incluyen en builds de prueba, no en el APK final
+    // ═══════════════════════════════════════════════════════════════
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
+
+// Desarrollado por rcktsm

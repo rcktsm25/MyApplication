@@ -1,4 +1,26 @@
 <resources>
+    <string name="classic_library_title">PLAYLIST / BIBLIOTECA</string>
+    <string name="classic_ready">LISTO · Selecciona tu música</string>
+    <string name="local_tab">MI LISTA</string>
+    <string name="spotify_library">Tu biblioteca</string>
+    <string name="browser_back">Volver a la carpeta anterior</string>
+    <string name="browser_refresh">Actualizar biblioteca de Spotify</string>
+    <string name="browser_more">CARGAR MÁS</string>
+    <string name="browser_loading">Cargando tu biblioteca de Spotify…</string>
+    <string name="browser_empty">Spotify no devolvió elementos en esta sección.</string>
+    <string name="browser_error">No se pudo cargar esta sección. Pulsa actualizar para reintentar.</string>
+    <string name="browser_connect">Conectando con Spotify para abrir tu biblioteca…</string>
+    <string name="browser_play">Reproducir %1$s</string>
+    <string name="browser_open">Abrir %1$s</string>
+    <string name="browser_count">%1$d elementos</string>
+    <string name="browser_folder">Carpeta / colección</string>
+    <string name="browser_playable">Reproducir en Spotify</string>
+    <string name="browser_timeout">Spotify tardó demasiado en responder. Pulsa actualizar para reintentar.</string>
+    <string name="visualizer_description">Animación de barras estilo Winamp</string>
+    <string name="seek_description">Posición de reproducción</string>
+    <string name="shuffle_description">Reproducción aleatoria</string>
+    <string name="repeat_description">Repetir</string>
+    <string name="balance_unavailable">Balance no disponible</string>
     <string name="app_name">RocketPlayer</string>
     <string name="title_rocket">ROCKETPLAYER</string>
     <string name="no_track">ROCKET: IDLE</string>
@@ -14,20 +36,26 @@
     <string name="cd_pause">Pausar</string>
     <string name="cd_stop">Detener</string>
     <string name="cd_next">Siguiente</string>
-    <string name="cd_add">Añadir estación</string>
+    <string name="cd_add">Elegir carpeta de música. Mantén pulsado para actualizar.</string>
+    <string name="library_title">MI MÚSICA</string>
+    <string name="folder_button">CARPETA</string>
+    <string name="folder_choose_prompt">Pulsa CARPETA y selecciona dónde guardas tu música en el teléfono.</string>
+    <string name="folder_loading">Buscando música en la carpeta…</string>
+    <string name="folder_empty">No se encontraron archivos de audio. Elige otra carpeta.</string>
+    <string name="folder_loaded">%1$d archivos de música cargados</string>
+    <string name="folder_permission_error">No se pudo conservar el acceso. Vuelve a seleccionar la carpeta y pulsa «Usar esta carpeta».</string>
+    <string name="folder_read_error">No se puede leer la música. Comprueba que la carpeta exista y vuelve a seleccionarla.</string>
     <!-- Diálogo -->
-    <string name="dialog_add_title">Añadir estación de streaming</string>
-    <string name="dialog_name_hint">Nombre (ej. Mi Radio)</string>
-    <string name="dialog_url_hint">URL (https://...)</string>
-    <string name="dialog_ok">CONECTAR</string>
+    <string name="dialog_add_title">Añadir música de Spotify</string>
+    <string name="dialog_name_hint">Nombre de la canción o playlist</string>
+    <string name="dialog_url_hint">https://open.spotify.com/… o spotify:…</string>
+    <string name="dialog_ok">AÑADIR</string>
     <string name="dialog_cancel">CANCELAR</string>
     <string name="error_empty_url">La URL no puede estar vacía</string>
-    <string name="stream_default_name">Stream personalizado</string>
-    <string name="stream_user_label">Usuario</string>
     <string name="toast_speed_turbo">Visualizador: TURBO</string>
     <string name="toast_speed_chill">Visualizador: CHILL</string>
     <string name="toast_speed_normal">Visualizador: NORMAL</string>
-    <string name="toast_stream_added">Estación añadida</string>
+    <string name="toast_stream_added">Enlace de Spotify añadido</string>
     <string name="error_network">Error de red. Verifica la URL.</string>
     <string name="error_playback">Error de reproducción</string>
 
@@ -62,4 +90,69 @@
     <string name="spotify_toast_connected">¡Spotify conectado exitosamente!</string>
     <string name="spotify_toast_disconnected">Spotify desconectado</string>
     <string name="spotify_toast_error">Error al conectar con Spotify</string>
+    <string name="spotify_invalid_client_id">Introduce el Client ID de 32 caracteres de tu aplicación en Spotify Developer Dashboard.</string>
+    <string name="spotify_fingerprint_unavailable">No disponible. Consulta ./gradlew signingReport.</string>
+    <string name="spotify_authorization_failed">Spotify no autorizó la conexión. Comprueba el Client ID, el paquete, la SHA-1 de esta instalación y la Redirect URI en Spotify Developer Dashboard; verifica también que tu cuenta tenga acceso a la aplicación. Después pulsa Conectar para reintentar.</string>
+    <string name="spotify_invalid_resource">Usa una URI spotify: o un enlace completo de open.spotify.com a una canción, álbum, artista, playlist, episodio o programa.</string>
+    <string name="spotify_disconnected_action">Conecta Spotify antes de usar los controles de reproducción.</string>
+    <string name="spotify_auth_cancelled">Autorización cancelada. Pulsa Conectar cuando quieras autorizar RocketPlayer.</string>
+    <string name="spotify_copy_error">COPIAR ERROR</string>
+    <string name="spotify_settings">CONFIGURAR</string>
+    <string name="spotify_add_link">AÑADIR ENLACE</string>
+    <string name="spotify_browser_missing">No se encontró un navegador compatible. Habilita o instala Chrome, Firefox o Samsung Internet y vuelve a conectar.</string>
+    <string name="spotify_invalid_callback">La respuesta de Spotify no corresponde a este intento de conexión. Vuelve a pulsar Conectar.</string>
+
+    <!-- Cola de reproducción -->
+    <string name="queue_title">COLA DE REPRODUCCIÓN</string>
+    <string name="queue_empty">La cola está vacía. Añade canciones desde tu biblioteca.</string>
+    <string name="queue_clear">Limpiar cola</string>
+    <string name="queue_shuffle">Aleatorio</string>
+    <string name="queue_remove">Eliminar de la cola</string>
+
+    <!-- Letras -->
+    <string name="lyrics_title">LETRA</string>
+    <string name="lyrics_loading">Buscando letra...</string>
+    <string name="lyrics_not_found">No se encontró la letra para esta canción.</string>
+    <string name="lyrics_error">Error al buscar la letra. Verifica tu conexión.</string>
+    <string name="lyrics_synchronized">● SINCRONIZADA</string>
+
+    <!-- Editor de metadatos -->
+    <string name="metadata_edit_title">EDITAR METADATOS</string>
+    <string name="metadata_title_hint">Título de la canción</string>
+    <string name="metadata_artist_hint">Nombre del artista</string>
+    <string name="metadata_album_hint">Nombre del álbum</string>
+    <string name="metadata_genre_hint">Género musical</string>
+    <string name="metadata_saved">Metadatos guardados</string>
+
+    <!-- Crossfade -->
+    <string name="crossfade_enabled">Transición suave activada</string>
+    <string name="crossfade_disabled">Transición suave desactivada</string>
+
+    <!-- ReplayGain -->
+    <string name="replaygain_enabled">Normalización de volumen activada</string>
+    <string name="replaygain_track">Modo: pista individual</string>
+    <string name="replaygain_album">Modo: álbum</string>
+
+    <!-- Backup de configuración -->
+    <string name="backup_exported">Configuración exportada correctamente</string>
+    <string name="backup_imported">Configuración importada correctamente</string>
+    <string name="backup_export_error">Error al exportar la configuración</string>
+    <string name="backup_import_error">Error al importar. El archivo puede estar corrupto.</string>
+
+    <!-- Tema del sistema -->
+    <string name="theme_auto">Tema automático del sistema</string>
+    <string name="theme_system_dark">Modo oscuro del sistema</string>
+    <string name="theme_system_light">Modo claro del sistema</string>
+
+    <!-- Estilos de visualizador -->
+    <string name="viz_style_led">LED Clásico</string>
+    <string name="viz_style_bars">Barras Sólidas</string>
+    <string name="viz_style_spectrum">Espectro</string>
+    <string name="viz_style_wave">Onda</string>
+    <string name="viz_style_particles">Partículas</string>
+
+    <!-- Agrupación de biblioteca -->
+    <string name="library_group_albums">Álbumes</string>
+    <string name="library_group_artists">Artistas</string>
+    <string name="library_flat">Vista plana</string>
 </resources>

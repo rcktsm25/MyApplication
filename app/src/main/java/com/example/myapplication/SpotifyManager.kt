@@ -3,16 +3,32 @@ package com.example.myapplication
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.client.Subscription
+import com.spotify.protocol.client.CallResult
+import com.spotify.android.appremote.api.PlayerApi
 import com.spotify.protocol.types.PlayerState
+import com.spotify.protocol.types.ListItem
+import com.spotify.protocol.types.ListItems
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import java.security.KeyStore
+import java.security.MessageDigest
+import java.util.Locale
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+import android.util.Base64
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -48,11 +64,8 @@ class SpotifyManager(private val context: Context) {
 
     companion object {
         private const val TAG = "SpotifyManager"
-
-        /**
-         * Código de solicitud para el flujo de autorización de Spotify.
-         */
         const val REQUEST_CODE_SPOTIFY_AUTH = 1337
+        const val REQUEST_CODE_SPOTIFY_BROWSER_AUTH = 1338
 
         /**
          * Esquema y host de redirección registrado en el Dashboard de Spotify.
@@ -64,7 +77,10 @@ class SpotifyManager(private val context: Context) {
          * Client ID por defecto o sugerido. Los usuarios pueden sobreescribirlo
          * en el diálogo de configuración de Spotify en la aplicación.
          */
-        const val DEFAULT_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"
+        const val DEFAULT_CLIENT_ID = ""
+
+        fun isValidClientId(clientId: String): Boolean =
+            Regex("[a-fA-F0-9]{32}").matches(clientId.trim())
 
         private const val PREFS_NAME = "SpotifySettings"
         private const val KEY_CLIENT_ID = "spotify_client_id"
@@ -75,6 +91,10 @@ class SpotifyManager(private val context: Context) {
 
     // Suscripción al estado del reproductor (canción actual, posición, etc.)
     private var playerStateSubscription: Subscription<PlayerState>? = null
+    private var connectionGeneration = 0
+    private var connecting = false
+    private val authorization = SpotifyAuthorizationGate()
+    private val connectionCallbacks = mutableListOf<Pair<(() -> Unit)?, ((Throwable) -> Unit)?>>()
 
     // Callbacks para comunicar eventos a la Activity o vistas
     var onPlayerStateChanged: ((PlayerState) -> Unit)? = null
@@ -85,17 +105,71 @@ class SpotifyManager(private val context: Context) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
-     * Obtiene el Client ID almacenado o devuelve el por defecto.
+     * Guarda un nuevo Client ID en SharedPreferences cifrado para futuras conexiones.
      */
-    fun getClientId(): String {
-        return prefs.getString(KEY_CLIENT_ID, DEFAULT_CLIENT_ID) ?: DEFAULT_CLIENT_ID
+    fun saveClientId(clientId: String) {
+        require(isValidClientId(clientId)) { context.getString(R.string.spotify_invalid_client_id) }
+        if (clientId.trim() != getClientId()) disconnect()
+        val encrypted = runCatching {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE, spotifyKey())
+            val iv = cipher.iv
+            val encrypted = cipher.doFinal(clientId.trim().toByteArray(Charsets.UTF_8))
+            Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
+        }.getOrNull()
+        prefs.edit().putString(KEY_CLIENT_ID, encrypted ?: clientId.trim()).apply()
     }
 
     /**
-     * Guarda un nuevo Client ID en SharedPreferences para futuras conexiones.
+     * Obtiene el Client ID almacenado o devuelve el por defecto.
      */
-    fun saveClientId(clientId: String) {
-        prefs.edit().putString(KEY_CLIENT_ID, clientId.trim()).apply()
+    fun getClientId(): String {
+        val raw = prefs.getString(KEY_CLIENT_ID, DEFAULT_CLIENT_ID).orEmpty()
+            .takeUnless { it == "YOUR_SPOTIFY_CLIENT_ID" }.orEmpty()
+        if (raw.isBlank()) return DEFAULT_CLIENT_ID
+        return runCatching {
+            val decoded = Base64.decode(raw, Base64.NO_WRAP)
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, spotifyKey(), GCMParameterSpec(128, decoded.copyOfRange(0, 12)))
+            String(cipher.doFinal(decoded.copyOfRange(12, decoded.size)), Charsets.UTF_8)
+        }.getOrNull() ?: raw
+    }
+
+    private fun spotifyKey(): SecretKey {
+        val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val alias = "rocket_spotify"
+        (store.getKey(alias, null) as? SecretKey)?.let { return it }
+        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").apply {
+            init(KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .build())
+        }.generateKey()
+    }
+
+    /** Fingerprints of the installed APK, including release builds and other developers' keys. */
+    @Suppress("DEPRECATION")
+    fun getSigningFingerprints(): String {
+        return runCatching {
+            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val signingInfo = context.packageManager.getPackageInfo(
+                    context.packageName, PackageManager.GET_SIGNING_CERTIFICATES
+                ).signingInfo
+                when {
+                    signingInfo == null -> emptyArray()
+                    signingInfo.hasMultipleSigners() -> signingInfo.apkContentsSigners.orEmpty()
+                    else -> signingInfo.signingCertificateHistory.orEmpty()
+                }
+            } else {
+                context.packageManager.getPackageInfo(
+                    context.packageName, PackageManager.GET_SIGNATURES
+                ).signatures.orEmpty()
+            }
+            signatures.joinToString("\n") { signature ->
+                MessageDigest.getInstance("SHA-1").digest(signature.toByteArray())
+                    .joinToString(":") { "%02X".format(Locale.ROOT, it.toInt() and 0xff) }
+            }.ifEmpty { context.getString(R.string.spotify_fingerprint_unavailable) }
+        }.getOrElse { context.getString(R.string.spotify_fingerprint_unavailable) }
     }
 
     /**
@@ -134,20 +208,44 @@ class SpotifyManager(private val context: Context) {
         return spotifyAppRemote?.isConnected == true
     }
 
-    /**
-     * Lanza la pantalla de autorización oficial de Spotify (Spotify Auth SDK).
-     * Esto le pide al usuario explícitamente autorizar la app con los permisos
-     * necesarios ("app-remote-control", "streaming").
+    /** Browse the installed Spotify client's library, including its returned folder hierarchy.
+     * The library entry point is supported by the client, but can vary between Spotify versions.
+     * Descendants always use IDs supplied by Spotify; no guessed playlist/folder IDs.
      */
-    fun requestUserAuthorization(activity: Activity) {
-        val builder = AuthorizationRequest.Builder(
-            getClientId(),
-            AuthorizationResponse.Type.TOKEN,
-            REDIRECT_URI
-        )
-        builder.setScopes(arrayOf("app-remote-control", "streaming", "playlist-read-private"))
-        val request = builder.build()
-        AuthorizationClient.openLoginActivity(activity, REQUEST_CODE_SPOTIFY_AUTH, request)
+    fun browseLibrary(
+        parent: ListItem?, offset: Int,
+        onResult: (ListItems) -> Unit, onFailure: (Throwable) -> Unit
+    ) {
+        val remote = spotifyAppRemote
+        if (remote?.isConnected != true) {
+            onFailure(IllegalStateException(context.getString(R.string.spotify_disconnected_action)))
+            return
+        }
+        val item = parent ?: ListItem("com.spotify.your-library", "com.spotify.your-library", null,
+            context.getString(R.string.spotify_library), "", false, true)
+        try {
+            remote.contentApi.getChildrenOfItem(item, 50, offset)
+                .setResultCallback { result ->
+                    if (remote === spotifyAppRemote && remote.isConnected) onResult(result)
+                    else onFailure(IllegalStateException(context.getString(R.string.spotify_disconnected_action)))
+                }.setErrorCallback { onFailure(it) }
+        } catch (error: Exception) {
+            onFailure(error)
+        }
+    }
+
+    fun playLibraryItem(item: ListItem) {
+        val remote = spotifyAppRemote
+        if (remote?.isConnected != true) {
+            onError?.invoke(IllegalStateException(context.getString(R.string.spotify_disconnected_action)))
+            return
+        }
+        if (!item.playable) return
+        try {
+            remote.contentApi.playContentItem(item).setErrorCallback { onError?.invoke(it) }
+        } catch (error: Exception) {
+            onError?.invoke(error)
+        }
     }
 
     /**
@@ -166,6 +264,18 @@ class SpotifyManager(private val context: Context) {
     ) {
         val clientId = getClientId()
 
+        val validationError = when {
+            !isValidClientId(clientId) -> IllegalArgumentException(context.getString(R.string.spotify_invalid_client_id))
+            !isSpotifyInstalled() -> IllegalStateException(context.getString(R.string.spotify_not_installed))
+            else -> null
+        }
+        if (validationError != null) {
+            onConnectionStatusChanged?.invoke(false)
+            onFailure?.invoke(validationError)
+            onError?.invoke(validationError)
+            return
+        }
+
         // Si ya está conectado, no volver a conectar
         if (isConnected()) {
             onSuccess?.invoke()
@@ -173,50 +283,132 @@ class SpotifyManager(private val context: Context) {
             return
         }
 
-        // Construir los parámetros de conexión requeridos por el SDK
-        val connectionParams = ConnectionParams.Builder(clientId)
+        connectionCallbacks.add(onSuccess to onFailure)
+        if (connecting) return
+        connecting = true
+        authorization.reset()
+        val generation = ++connectionGeneration
+        startConnection(activity, generation, showAuthView = true)
+    }
+
+    private fun startConnection(activity: Activity?, generation: Int, showAuthView: Boolean) {
+        val connectionParams = ConnectionParams.Builder(getClientId())
             .setRedirectUri(REDIRECT_URI)
-            .showAuthView(true) // Muestra la pantalla de autorización de Spotify si hace falta
+            .showAuthView(showAuthView)
             .build()
 
-        Log.d(TAG, "Iniciando conexión con Spotify usando Client ID: $clientId")
+        Log.d(TAG, "Iniciando conexión con Spotify")
 
-        SpotifyAppRemote.connect(
-            context,
-            connectionParams,
-            object : Connector.ConnectionListener {
-                override fun onConnected(appRemote: SpotifyAppRemote) {
-                    spotifyAppRemote = appRemote
-                    Log.d(TAG, "¡Conexión con Spotify establecida exitosamente!")
-
-                    // Suscribirse a cambios en el estado de reproducción
-                    subscribeToPlayerState()
-
-                    onSuccess?.invoke()
-                    onConnectionStatusChanged?.invoke(true)
-                }
-
-                override fun onFailure(throwable: Throwable) {
-                    Log.e(TAG, "Error al conectar con Spotify", throwable)
-                    spotifyAppRemote = null
-
-                    // Si el error indica que se requiere autorización explícita del usuario
-                    val isAuthRequired = throwable.message?.contains("Explicit user authorization", ignoreCase = true) == true ||
-                                         throwable is com.spotify.android.appremote.api.error.UserNotAuthorizedException
-
-                    if (isAuthRequired && activity != null) {
-                        Log.d(TAG, "Lanzando pantalla de autorización explícita de Spotify...")
-                        activity.runOnUiThread {
-                            requestUserAuthorization(activity)
+        try {
+            SpotifyAppRemote.connect(
+                activity ?: context,
+                connectionParams,
+                object : Connector.ConnectionListener {
+                    override fun onConnected(appRemote: SpotifyAppRemote) {
+                        if (generation != connectionGeneration) {
+                            SpotifyAppRemote.disconnect(appRemote)
+                            return
                         }
-                    } else {
-                        onFailure?.invoke(throwable)
-                        onError?.invoke(throwable)
-                        onConnectionStatusChanged?.invoke(false)
+                        connecting = false
+                        spotifyAppRemote = appRemote
+                        Log.d(TAG, "¡Conexión con Spotify establecida exitosamente!")
+
+                        // Suscribirse a cambios en el estado de reproducción
+                        subscribeToPlayerState()
+
+                        val callbacks = connectionCallbacks.toList()
+                        connectionCallbacks.clear()
+                        onConnectionStatusChanged?.invoke(true)
+                        callbacks.forEach { it.first?.invoke() }
+                    }
+
+                    override fun onFailure(throwable: Throwable) {
+                        if (generation != connectionGeneration) return
+                        if (requiresAuthorization(throwable) && activity != null && authorization.request()) {
+                            try {
+                                val request = AuthorizationRequest.Builder(
+                                    getClientId(), AuthorizationResponse.Type.CODE, REDIRECT_URI
+                                ).setScopes(arrayOf("app-remote-control")).build()
+                                // Keep the original success callbacks until consent and retry finish.
+                                AuthorizationClient.openLoginActivity(activity, REQUEST_CODE_SPOTIFY_AUTH, request)
+                            } catch (error: Exception) {
+                                failConnection(error)
+                            }
+                            return
+                        }
+                        failConnection(throwable)
                     }
                 }
+            )
+        } catch (error: Exception) {
+            if (generation == connectionGeneration) failConnection(error)
+        }
+    }
+
+    fun onAuthorizationResult(activity: Activity, resultCode: Int, data: Intent?) {
+        if (!connecting || !authorization.consumeResult()) return
+        val response = AuthorizationClient.getResponse(resultCode, data)
+        when (response.type) {
+            AuthorizationResponse.Type.CODE,
+            AuthorizationResponse.Type.TOKEN -> {
+                // App Remote uses the consent grant, not a Web API access token.
+                // No client secret or token exchange is needed to control the installed app.
+                startConnection(activity, connectionGeneration, showAuthView = true)
             }
-        )
+            AuthorizationResponse.Type.ERROR -> {
+                if (authorization.requestBrowser(response.error)) {
+                    try {
+                        activity.startActivityForResult(
+                            Intent(activity, SpotifyBrowserAuthActivity::class.java)
+                                .putExtra(SpotifyBrowserAuthActivity.EXTRA_CLIENT_ID, getClientId()),
+                            REQUEST_CODE_SPOTIFY_BROWSER_AUTH
+                        )
+                    } catch (error: Exception) {
+                        failConnection(error)
+                    }
+                } else {
+                    failConnection(IllegalStateException("Autorización Spotify: ${response.error}"))
+                }
+            }
+            else -> failConnection(IllegalStateException(context.getString(R.string.spotify_auth_cancelled)))
+        }
+    }
+
+    fun onBrowserAuthorizationResult(activity: Activity, resultCode: Int, data: Intent?) {
+        if (!connecting || !authorization.consumeBrowserResult()) return
+        when {
+            resultCode != Activity.RESULT_OK ->
+                failConnection(IllegalStateException(context.getString(R.string.spotify_auth_cancelled)))
+            data?.getBooleanExtra(SpotifyBrowserAuthActivity.EXTRA_APPROVED, false) == true ->
+                startConnection(activity, connectionGeneration, showAuthView = true)
+            else -> failConnection(IllegalStateException(
+                "Autorización Spotify: ${data?.getStringExtra(SpotifyBrowserAuthActivity.EXTRA_ERROR).orEmpty()}"
+            ))
+        }
+    }
+
+    private fun requiresAuthorization(error: Throwable): Boolean =
+        error is com.spotify.android.appremote.api.error.UserNotAuthorizedException ||
+            error is com.spotify.android.appremote.api.error.AuthenticationFailedException ||
+            error.message?.contains("Explicit user authorization", ignoreCase = true) == true ||
+            error.message?.contains("user_not_authorized", ignoreCase = true) == true
+
+    private fun failConnection(error: Throwable) {
+        Log.e(TAG, "Error al conectar con Spotify", error)
+        connecting = false
+        authorization.reset()
+        playerStateSubscription?.cancel()
+        playerStateSubscription = null
+        spotifyAppRemote?.let { SpotifyAppRemote.disconnect(it) }
+        spotifyAppRemote = null
+        val callbacks = connectionCallbacks.toList()
+        connectionCallbacks.clear()
+        val failure = if (requiresAuthorization(error)) {
+            IllegalStateException(context.getString(R.string.spotify_authorization_failed), error)
+        } else error
+        onConnectionStatusChanged?.invoke(false)
+        callbacks.forEach { it.second?.invoke(failure) }
+        onError?.invoke(failure)
     }
 
     /**
@@ -236,12 +428,17 @@ class SpotifyManager(private val context: Context) {
                 onPlayerStateChanged?.invoke(playerState)
             }
         }
+        playerStateSubscription?.setErrorCallback { error -> onError?.invoke(error) }
     }
 
     /**
      * Desconecta el control remoto y libera los recursos de IPC.
      */
     fun disconnect() {
+        connectionGeneration++
+        connecting = false
+        authorization.reset()
+        connectionCallbacks.clear()
         playerStateSubscription?.cancel()
         playerStateSubscription = null
 
@@ -263,13 +460,17 @@ class SpotifyManager(private val context: Context) {
      * automáticamente al formato de URI nativo (`spotify:track:...`).
      */
     fun play(uriOrUrl: String, activity: Activity? = null) {
-        val uri = convertUrlToUri(uriOrUrl)
+        val uri = SpotifyResource.toUri(uriOrUrl)
+        if (uri == null) {
+            onError?.invoke(IllegalArgumentException(context.getString(R.string.spotify_invalid_resource)))
+            return
+        }
         if (!isConnected()) {
             connect(activity = activity, onSuccess = {
-                spotifyAppRemote?.playerApi?.play(uri)
+                command { play(uri) }
             })
         } else {
-            spotifyAppRemote?.playerApi?.play(uri)
+            command { play(uri) }
         }
     }
 
@@ -277,49 +478,50 @@ class SpotifyManager(private val context: Context) {
      * Reanuda la reproducción actual en Spotify.
      */
     fun resume() {
-        spotifyAppRemote?.playerApi?.resume()
+        command { resume() }
     }
 
     /**
      * Pausa la reproducción actual en Spotify.
      */
     fun pause() {
-        spotifyAppRemote?.playerApi?.pause()
+        // Pausing Spotify while switching to radio is unnecessary when disconnected.
+        if (isConnected()) command { pause() }
     }
 
     /**
      * Salta a la siguiente canción en la cola de Spotify.
      */
     fun skipNext() {
-        spotifyAppRemote?.playerApi?.skipNext()
+        command { skipNext() }
     }
 
     /**
      * Vuelve a la canción anterior en Spotify.
      */
     fun skipPrevious() {
-        spotifyAppRemote?.playerApi?.skipPrevious()
+        command { skipPrevious() }
     }
 
     /**
      * Cambia la posición temporal (Seek) de la canción actual en milisegundos.
      */
     fun seekTo(positionMs: Long) {
-        spotifyAppRemote?.playerApi?.seekTo(positionMs)
+        command { seekTo(positionMs) }
     }
 
     /**
      * Activa o desactiva el modo aleatorio (Shuffle) en Spotify.
      */
     fun setShuffle(enabled: Boolean) {
-        spotifyAppRemote?.playerApi?.setShuffle(enabled)
+        command { setShuffle(enabled) }
     }
 
     /**
      * Alterna el modo de repetición de canciones en Spotify (Off -> All -> One).
      */
     fun toggleRepeat() {
-        spotifyAppRemote?.playerApi?.toggleRepeat()
+        command { toggleRepeat() }
     }
 
     /**
@@ -329,23 +531,21 @@ class SpotifyManager(private val context: Context) {
      * - Salida:  "spotify:playlist:37i9dQZF1DXcBWIGoYBM5M"
      */
     fun convertUrlToUri(urlOrUri: String): String {
-        val trimmed = urlOrUri.trim()
-        if (trimmed.startsWith("spotify:")) {
-            return trimmed
+        return requireNotNull(SpotifyResource.toUri(urlOrUri)) {
+            context.getString(R.string.spotify_invalid_resource)
         }
+    }
 
+    private fun command(action: PlayerApi.() -> CallResult<*>) {
+        val remote = spotifyAppRemote
+        if (remote?.isConnected != true) {
+            onError?.invoke(IllegalStateException(context.getString(R.string.spotify_disconnected_action)))
+            return
+        }
         try {
-            val parsed = Uri.parse(trimmed)
-            val segments = parsed.pathSegments
-            if (segments.size >= 2) {
-                val type = segments[0] // "track", "playlist", "album", "artist"
-                val id = segments[1]
-                return "spotify:$type:$id"
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "No se pudo parsear URL a URI de Spotify: $urlOrUri", e)
+            action(remote.playerApi).setErrorCallback { error -> onError?.invoke(error) }
+        } catch (error: Exception) {
+            onError?.invoke(error)
         }
-
-        return trimmed
     }
 }

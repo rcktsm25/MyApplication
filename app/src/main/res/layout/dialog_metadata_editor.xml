@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="#1A2129">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/winamp_title_strip"
+        android:tag="classic_strip">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="8dp"
+            android:background="#282936"
+            android:tag="classic_title"
+            android:text="EDITAR METADATOS"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:textColor="#E0E2EA"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TÍTULO"
+            android:fontFamily="monospace"
+            android:textSize="9sp"
+            android:textColor="#8D9AA7"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_title"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="@drawable/player_screen"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#E9EEF5"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:hint="Título de la canción"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ARTISTA"
+            android:fontFamily="monospace"
+            android:textSize="9sp"
+            android:textColor="#8D9AA7"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_artist"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="@drawable/player_screen"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#E9EEF5"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:hint="Nombre del artista"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ÁLBUM"
+            android:fontFamily="monospace"
+            android:textSize="9sp"
+            android:textColor="#8D9AA7"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_album"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="@drawable/player_screen"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#E9EEF5"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:hint="Nombre del álbum"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GÉNERO"
+            android:fontFamily="monospace"
+            android:textSize="9sp"
+            android:textColor="#8D9AA7"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_genre"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="@drawable/player_screen"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#E9EEF5"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:hint="Género musical"/>
+    </LinearLayout>
+</LinearLayout>

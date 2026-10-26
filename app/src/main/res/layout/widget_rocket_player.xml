@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/player_chassis">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/winamp_title_strip">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="8dp"
+            android:background="#282936"
+            android:text="ROCKETPLAYER"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:textColor="#E0E2EA"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="6dp">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#B6EE65"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:text="RocketPlayer"/>
+
+        <TextView
+            android:id="@+id/widget_artist"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:fontFamily="sans-serif"
+            android:textSize="10sp"
+            android:textColor="#9CAAB7"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Tu música, a tu manera"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/widget_btn_prev"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/panel_button"
+            android:src="@drawable/ic_pro_previous"
+            android:scaleType="fitCenter"
+            app:tint="#203044"
+            android:contentDescription="Anterior"/>
+
+        <ImageButton
+            android:id="@+id/widget_btn_play"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.5"
+            android:background="@drawable/panel_button"
+            android:src="@drawable/ic_pro_play"
+            android:scaleType="fitCenter"
+            app:tint="#B6EE65"
+            android:contentDescription="Reproducir"/>
+
+        <ImageButton
+            android:id="@+id/widget_btn_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/panel_button"
+            android:src="@drawable/ic_pro_next"
+            android:scaleType="fitCenter"
+            app:tint="#203044"
+            android:contentDescription="Siguiente"/>
+    </LinearLayout>
+</LinearLayout>

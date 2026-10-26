@@ -1,18 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#000000" />
-            <corners android:radius="2dp" />
-        </shape>
-    </item>
-    <item android:bottom="2dp" android:left="2dp" android:right="2dp" android:top="2dp">
-        <shape android:shape="rectangle">
-            <gradient
-                android:angle="270"
-                android:endColor="@color/rocket_bg_dark"
-                android:startColor="@color/rocket_bg" />
-            <stroke android:width="1dp" android:color="@color/rocket_accent_dim" />
-        </shape>
-    </item>
+<item><shape><solid android:color="#090A12"/></shape></item>
+<item android:right="2dp" android:bottom="2dp"><shape><solid android:color="#87889B"/></shape></item>
+<item android:left="2dp" android:top="2dp" android:right="3dp" android:bottom="3dp"><shape><solid android:color="#171822"/></shape></item>
+<item android:left="3dp" android:top="3dp" android:right="4dp" android:bottom="4dp"><shape><gradient android:angle="0" android:startColor="#292936" android:endColor="#404054"/></shape></item>
 </layer-list>

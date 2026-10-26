@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="ClassicTabView">
+        <attr name="android:text"/>
+        <attr name="android:drawableTop"/>
+    </declare-styleable>
+</resources>

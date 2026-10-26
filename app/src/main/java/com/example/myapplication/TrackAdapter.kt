@@ -22,33 +22,35 @@ class TrackAdapter(
     }
 
     fun setCurrentTrack(index: Int) {
+        if (currentPlayingIndex == index) return
         val oldIndex = currentPlayingIndex
         currentPlayingIndex = index
-        if (oldIndex >= 0) notifyItemChanged(oldIndex)
-        if (index >= 0) notifyItemChanged(index)
+        if (oldIndex in 0 until itemCount) notifyItemChanged(oldIndex)
+        if (index in 0 until itemCount) notifyItemChanged(index)
     }
 
     inner class ViewHolder(private val binding: ItemTrackBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(track: Track, position: Int, isPlaying: Boolean) {
-            binding.trackTitle.text = track.title
-            binding.trackArtist.text = track.artist
+            binding.trackTitle.text = if (track.isSpotify) track.title else track.title.replace(Regex("(?i)\\.(wav|mp3|m4a|aac|flac|ogg|opus)$"), "")
+            binding.trackArtist.text = if (track.artist == "Artista desconocido" && track.folderPath.isNotBlank()) track.folderPath else track.artist
+            binding.trackDuration.text = if (track.durationMs > 0) String.format(java.util.Locale.ROOT, "%d:%02d", track.durationMs / 60000, track.durationMs / 1000 % 60) else "—"
             binding.imgSpotifyIcon.visibility =
                 if (track.isSpotify) android.view.View.VISIBLE else android.view.View.GONE
 
             if (isPlaying) {
-                binding.trackTitle.setTextColor(accentColor)
-                binding.trackArtist.setTextColor(accentColor)
+                binding.trackTitle.setTextColor(0xFFFFFFFF.toInt())
+                binding.trackArtist.setTextColor(0xFFB1C2CE.toInt())
                 binding.trackNumber.setTextColor(accentColor)
                 binding.trackNumber.text = "▶"
-                binding.root.setBackgroundColor(0x22FF4500.toInt())
+                binding.root.isSelected = true
             } else {
-                binding.trackTitle.setTextColor(0xFFE0E0E0.toInt())
-                binding.trackArtist.setTextColor(dimColor)
-                binding.trackNumber.setTextColor(dimColor)
-                binding.trackNumber.text = String.format("%02d", position + 1)
-                binding.root.setBackgroundColor(0x00000000.toInt())
+                binding.trackTitle.setTextColor(accentColor)
+                binding.trackArtist.setTextColor(0xFF91A1B0.toInt())
+                binding.trackNumber.setTextColor(accentColor)
+                binding.trackNumber.text = String.format(java.util.Locale.ROOT, "%02d", position + 1)
+                binding.root.isSelected = false
             }
 
             binding.root.setOnClickListener { onTrackClick(track, position) }

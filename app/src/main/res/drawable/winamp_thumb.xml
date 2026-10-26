@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/rocket_silver" />
-    <size android:width="8dp" android:height="16dp" />
-    <stroke android:width="1dp" android:color="#000000" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<item><shape><size android:width="20dp" android:height="14dp"/><solid android:color="#171822"/></shape></item>
+<item android:right="2dp" android:bottom="2dp"><shape><solid android:color="#E0D6A0"/></shape></item>
+<item android:left="2dp" android:top="2dp" android:right="3dp" android:bottom="3dp"><shape><solid android:color="#969064"/></shape></item>
+<item android:left="5dp" android:top="5dp" android:right="6dp" android:bottom="6dp"><shape><solid android:color="#E0D6A0"/></shape></item>
+</layer-list>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/visualizer_selector_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/winamp_title_strip"
+        android:tag="classic_strip">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="8dp"
+            android:background="#282936"
+            android:tag="classic_title"
+            android:text="ESTILO DE VISUALIZADOR"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:textColor="#E0E2EA"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_viz_led"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            android:text="LED"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_viz_bars"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            android:text="Barras"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_viz_spectrum"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            android:text="Espectro"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_viz_wave"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            android:text="Onda"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_viz_particles"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Partículas"
+            android:textSize="10sp"/>
+    </LinearLayout>
+</LinearLayout>

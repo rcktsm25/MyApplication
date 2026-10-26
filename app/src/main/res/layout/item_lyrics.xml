@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/player_screen">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/winamp_title_strip"
+        android:tag="classic_strip">
+
+        <TextView
+            android:id="@+id/lyrics_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="8dp"
+            android:background="#282936"
+            android:tag="classic_title"
+            android:text="LETRA"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:textColor="#E0E2EA"/>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/lyrics_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textSize="12sp"
+        android:textColor="#B6EE65"
+        android:gravity="center"
+        android:layout_marginBottom="8dp"
+        android:text="Título - Artista"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:fillViewport="true"
+        android:background="#0A0A0F">
+
+        <TextView
+            android:id="@+id/lyrics_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="13sp"
+            android:textColor="#C8D8E8"
+            android:padding="12dp"
+            android:lineSpacingMultiplier="1.4"
+            android:text="Cargando letra..."/>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/lyrics_sync_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_marginTop="6dp"
+        android:fontFamily="monospace"
+        android:textSize="9sp"
+        android:textColor="#869978"
+        android:paddingHorizontal="6dp"
+        android:background="@drawable/player_screen"
+        android:text="● SINCRONIZADA"
+        android:visibility="gone"/>
+</LinearLayout>

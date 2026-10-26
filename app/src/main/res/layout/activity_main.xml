@@ -1,497 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#000000"
-    android:padding="4dp"
-    tools:context=".MainActivity">
-
-    <!-- ═══════════════════════════════════════════════ -->
-    <!--          ROCKET PLAYER — MAIN UNIT              -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/player_unit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rocket_frame"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <!-- ─── TITLE BAR ─── -->
-        <View
-            android:id="@+id/title_bar"
-            android:layout_width="0dp"
-            android:layout_height="22dp"
-            android:background="@color/rocket_accent_dim"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- App icon in title bar -->
-        <ImageView
-            android:id="@+id/rocket_logo"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginStart="6dp"
-            android:src="@drawable/ic_rocket"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintStart_toStartOf="@id/title_bar"
-            app:layout_constraintTop_toTopOf="@id/title_bar" />
-
-        <!-- App title -->
-        <TextView
-            android:id="@+id/app_title_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="@string/title_rocket"
-            android:textColor="@color/rocket_gold"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.1"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintEnd_toStartOf="@id/btn_spotify"
-            app:layout_constraintStart_toEndOf="@id/rocket_logo"
-            app:layout_constraintTop_toTopOf="@id/title_bar" />
-
-        <!-- Spotify toggle / connect button -->
-        <ImageButton
-            android:id="@+id/btn_spotify"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="4dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/cd_spotify"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_spotify"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintEnd_toStartOf="@id/btn_theme"
-            app:layout_constraintTop_toTopOf="@id/title_bar" />
-
-        <!-- Theme toggle button -->
-        <ImageButton
-            android:id="@+id/btn_theme"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="4dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/cd_theme"
-            android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_menu_manage"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintEnd_toStartOf="@id/btn_speed"
-            app:layout_constraintTop_toTopOf="@id/title_bar"
-            app:tint="@color/rocket_gold" />
-
-        <!-- Visualizer speed toggle -->
-        <ImageButton
-            android:id="@+id/btn_speed"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="4dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/cd_speed"
-            android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_lock_idle_alarm"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintEnd_toStartOf="@id/btn_logout"
-            app:layout_constraintTop_toTopOf="@id/title_bar"
-            app:tint="@color/rocket_gold" />
-
-        <!-- Logout button -->
-        <ImageButton
-            android:id="@+id/btn_logout"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="6dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/cd_logout"
-            android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_lock_power_off"
-            app:layout_constraintBottom_toBottomOf="@id/title_bar"
-            app:layout_constraintEnd_toEndOf="@id/title_bar"
-            app:layout_constraintTop_toTopOf="@id/title_bar"
-            app:tint="@color/rocket_gold" />
-
-        <!-- ─── DISPLAY PANEL ─── -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/display_container"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/rocket_display_frame"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title_bar">
-
-            <!-- Visualizer bars (custom view) -->
-            <com.example.myapplication.VisualizerView
-                android:id="@+id/visualizer"
-                android:layout_width="130dp"
-                android:layout_height="55dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="6dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <!-- STEREO / MONO indicators -->
-            <LinearLayout
-                android:id="@+id/status_indicators"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:layout_marginEnd="8dp"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <TextView
-                    android:id="@+id/tv_stereo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_stereo"
-                    android:textColor="@color/rocket_text_dim"
-                    android:textSize="8sp"
-                    android:fontFamily="monospace" />
-
-                <TextView
-                    android:id="@+id/tv_mono"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_mono"
-                    android:textColor="@color/rocket_text_dim"
-                    android:textSize="8sp"
-                    android:fontFamily="monospace" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#14141D">
+    <LinearLayout android:id="@+id/player_unit" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:background="@drawable/player_chassis" android:tag="classic_panel" android:orientation="vertical">
+        <FrameLayout android:id="@+id/player_brand" android:layout_width="match_parent" android:layout_height="28dp" android:background="@drawable/winamp_title_strip" android:tag="classic_strip">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="start|center_vertical" android:padding="2dp" android:scaleType="fitCenter" android:src="@drawable/rocket_player_icon" android:background="#282936" android:tag="classic_title" android:contentDescription="@null"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:paddingHorizontal="8dp" android:background="#282936" android:tag="classic_title" android:text="ROCKETPLAYER · CLASSIC" android:fontFamily="monospace" android:textStyle="bold" android:textSize="12sp" android:textColor="#E0E2EA" android:includeFontPadding="false"/>
+        </FrameLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="100dp" android:layout_marginTop="6dp">
+            <LinearLayout android:id="@+id/meter_row" android:layout_width="112dp" android:layout_height="match_parent" android:padding="7dp" android:orientation="vertical" android:background="@drawable/player_screen">
+                <com.example.myapplication.DigitalClockView android:id="@+id/playback_time" android:layout_width="match_parent" android:layout_height="42dp" android:text="00:00" android:textColor="#B6EE65"/>
+                <com.example.myapplication.VisualizerView android:id="@+id/visualizer" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp" android:contentDescription="Espectro del audio local"/>
+                <TextView android:id="@+id/playback_state" android:layout_width="match_parent" android:layout_height="16dp" android:gravity="center_vertical" android:fontFamily="monospace" android:textSize="9sp" android:textColor="#869978" android:text="■ LISTO"/>
             </LinearLayout>
-
-            <!-- Playback time (big clock) -->
-            <TextView
-                android:id="@+id/playback_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:fontFamily="monospace"
-                android:text="00:00"
-                android:textColor="@color/rocket_accent"
-                android:textSize="34sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/status_indicators" />
-
-            <!-- Track title with marquee -->
-            <TextView
-                android:id="@+id/track_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:layout_marginTop="2dp"
-                android:ellipsize="marquee"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:scrollHorizontally="true"
-                android:singleLine="true"
-                android:text="@string/no_track"
-                android:textColor="@color/rocket_gold"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/playback_time" />
-
-            <!-- Bottom info row -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <TextView
-                    android:id="@+id/sample_rate_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="44 kHz"
-                    android:textColor="@color/rocket_text_dim"
-                    android:textSize="9sp"
-                    android:fontFamily="monospace" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="4dp"
-                    android:text="·"
-                    android:textColor="@color/rocket_text_dim"
-                    android:textSize="9sp" />
-
-                <TextView
-                    android:id="@+id/bitrate_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="128 kbps"
-                    android:textColor="@color/rocket_text_dim"
-                    android:textSize="9sp"
-                    android:fontFamily="monospace" />
-
-                <!-- Error / status message -->
-                <TextView
-                    android:id="@+id/tv_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textColor="#FF4444"
-                    android:textSize="9sp"
-                    android:fontFamily="monospace"
-                    android:visibility="gone" />
-
-                <!-- Spotify Active Badge -->
-                <TextView
-                    android:id="@+id/tv_spotify_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="SPOTIFY"
-                    android:textColor="#1ED760"
-                    android:textSize="9sp"
-                    android:textStyle="bold"
-                    android:fontFamily="monospace"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- ─── SEEK BAR ─── -->
-        <SeekBar
-            android:id="@+id/seek_bar"
-            android:layout_width="0dp"
-            android:layout_height="16dp"
-            android:layout_marginTop="6dp"
-            android:progressDrawable="@drawable/rocket_seekbar_progress"
-            android:thumb="@drawable/rocket_thumb"
-            android:splitTrack="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/display_container" />
-
-        <!-- ─── VOLUME & BALANCE SLIDERS ─── -->
-        <LinearLayout
-            android:id="@+id/extra_sliders"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@id/seek_bar">
-
-            <!-- Balance -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="22dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/bal_label"
-                    android:textColor="@color/rocket_silver"
-                    android:textSize="8sp"
-                    android:fontFamily="monospace" />
-
-                <SeekBar
-                    android:id="@+id/balance_bar"
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp"
-                    android:max="100"
-                    android:progress="50"
-                    android:progressDrawable="@drawable/rocket_seekbar_progress"
-                    android:thumb="@drawable/rocket_thumb"
-                    android:splitTrack="false" />
-            </LinearLayout>
-
-            <!-- Volume -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="22dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/vol_label"
-                    android:textColor="@color/rocket_silver"
-                    android:textSize="8sp"
-                    android:fontFamily="monospace" />
-
-                <SeekBar
-                    android:id="@+id/volume_bar"
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp"
-                    android:max="100"
-                    android:progress="75"
-                    android:progressDrawable="@drawable/rocket_seekbar_progress"
-                    android:thumb="@drawable/rocket_thumb"
-                    android:splitTrack="false" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical">
+                <TextView android:id="@+id/track_title" android:layout_width="match_parent" android:layout_height="36dp" android:gravity="center_vertical" android:paddingHorizontal="7dp" android:background="@drawable/player_screen" android:text="ELIGE UNA CANCIÓN" android:textSize="13sp" android:fontFamily="monospace" android:textColor="#B6EE65" android:singleLine="true" android:ellipsize="marquee" android:marqueeRepeatLimit="marquee_forever"/>
+                <TextView android:id="@+id/track_artist" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:text="Tu música, a tu manera" android:textSize="12sp" android:ellipsize="end"/>
+                <TextView android:id="@+id/audio_info" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="18dp" android:fontFamily="monospace" android:text="AUDIO LOCAL" android:textSize="10sp" android:textColor="#AEBB9A"/>
+                <TextView android:id="@+id/source_badge" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="18dp" android:fontFamily="monospace" android:text="● DISPOSITIVO" android:textColor="#B6EE65" android:textSize="10sp"/>
             </LinearLayout>
         </LinearLayout>
-
-        <!-- ─── PLAYBACK CONTROLS ─── -->
-        <LinearLayout
-            android:id="@+id/main_controls"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/extra_sliders">
-
-            <ImageButton
-                android:id="@+id/btn_prev"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:contentDescription="@string/cd_prev"
-                android:src="@android:drawable/ic_media_previous"
-                app:tint="#000000" />
-
-            <ImageButton
-                android:id="@+id/btn_play"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:contentDescription="@string/cd_play"
-                android:src="@drawable/ic_winamp_play" />
-
-            <ImageButton
-                android:id="@+id/btn_pause"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:contentDescription="@string/cd_pause"
-                android:src="@drawable/ic_winamp_pause" />
-
-            <ImageButton
-                android:id="@+id/btn_stop"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:contentDescription="@string/cd_stop"
-                android:src="@drawable/ic_winamp_stop" />
-
-            <ImageButton
-                android:id="@+id/btn_next"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:contentDescription="@string/cd_next"
-                android:src="@android:drawable/ic_media_next"
-                app:tint="#000000" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center_vertical">
+            <SeekBar android:id="@+id/seek_bar" style="@style/ProSlider" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:contentDescription="Posición de la canción"/>
+            <TextView android:id="@+id/total_time" style="@style/PlayerLabel" android:layout_width="42dp" android:layout_height="wrap_content" android:gravity="end" android:text="--:--" android:fontFamily="monospace" android:textSize="11sp"/>
         </LinearLayout>
-
-        <!-- Shuffle / Repeat toggles -->
-        <LinearLayout
-            android:id="@+id/extra_controls"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="@id/main_controls"
-            app:layout_constraintStart_toEndOf="@id/main_controls"
-            app:layout_constraintTop_toTopOf="@id/main_controls">
-
-            <ToggleButton
-                android:id="@+id/btn_shuffle"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:textOff="SHF"
-                android:textOn="SHF"
-                android:textColor="#000000"
-                android:textSize="7sp"
-                android:textStyle="bold" />
-
-            <ToggleButton
-                android:id="@+id/btn_repeat"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_margin="2dp"
-                android:background="@drawable/winamp_button_bg"
-                android:textOff="REP"
-                android:textOn="REP"
-                android:textColor="#000000"
-                android:textSize="7sp"
-                android:textStyle="bold" />
+        <LinearLayout android:id="@+id/volume_row" android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center_vertical">
+            <TextView style="@style/PlayerLabel" android:layout_width="32dp" android:layout_height="wrap_content" android:text="VOL" android:fontFamily="monospace" android:textSize="10sp"/>
+            <SeekBar android:id="@+id/volume_bar" style="@style/ProSlider" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:max="100" android:contentDescription="Volumen multimedia"/>
+            <TextView android:id="@+id/volume_value" style="@style/PlayerLabel" android:layout_width="42dp" android:layout_height="wrap_content" android:gravity="end" android:text="75%" android:textSize="10sp" android:fontFamily="monospace"/>
         </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- ═══════════════════════════════════════════════ -->
-    <!--          FLIGHT DECK — PLAYLIST UNIT            -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/playlist_unit"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/rocket_frame"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/player_unit">
-
-        <!-- Playlist header -->
-        <TextView
-            android:id="@+id/playlist_header"
-            android:layout_width="0dp"
-            android:layout_height="24dp"
-            android:background="@color/rocket_accent_dim"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:text="FLIGHT DECK — PLAYLIST"
-            android:textColor="@color/rocket_gold"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.08"
-            app:layout_constraintEnd_toStartOf="@id/btn_add_stream"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Add stream button -->
-        <ImageButton
-            android:id="@+id/btn_add_stream"
-            android:layout_width="32dp"
-            android:layout_height="24dp"
-            android:background="@color/rocket_accent_dim"
-            android:contentDescription="@string/cd_add"
-            android:src="@android:drawable/ic_menu_add"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/rocket_gold" />
-
-        <!-- Playlist RecyclerView -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_playlist"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/playlist_header"
-            tools:listitem="@layout/item_track" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:gravity="center_vertical">
+            <ImageButton android:id="@+id/btn_prev" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_pro_previous" android:contentDescription="Canción anterior"/>
+            <ImageButton android:id="@+id/btn_play" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_pro_play" android:contentDescription="Reproducir"/>
+            <ImageButton android:id="@+id/btn_stop" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_pro_stop" android:contentDescription="Detener y volver al inicio"/>
+            <ImageButton android:id="@+id/btn_next" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_pro_next" android:contentDescription="Canción siguiente"/>
+            <ImageButton android:id="@+id/btn_shuffle" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_pro_shuffle" android:contentDescription="Activar reproducción aleatoria"/>
+            <ImageButton android:id="@+id/btn_repeat" style="@style/ProTransport" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:src="@drawable/ic_pro_repeat" android:contentDescription="Cambiar modo de repetición"/>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/library_unit" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:layout_marginTop="6dp" android:padding="8dp" android:background="@drawable/player_chassis" android:tag="classic_panel">
+        <FrameLayout android:layout_width="match_parent" android:layout_height="28dp" android:layout_marginBottom="8dp" android:background="@drawable/winamp_title_strip" android:tag="classic_strip">
+            <TextView android:id="@+id/section_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:paddingHorizontal="10dp" android:background="#282936" android:tag="classic_title" android:text="BIBLIOTECA LOCAL" android:textColor="#E0E2EA" android:textSize="12sp" android:fontFamily="monospace" android:textStyle="bold" android:accessibilityHeading="true"/>
+        </FrameLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+            <LinearLayout android:id="@+id/local_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+                    <EditText android:id="@+id/local_search" style="@style/PlayerSearch" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:hint="Buscar en tu música" android:inputType="text" android:imeOptions="actionSearch"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_folder" style="@style/PanelButton" android:layout_width="96dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:text="Carpeta" android:drawableStart="@drawable/ic_pro_folder" android:drawableTint="#203244" android:drawablePadding="5dp"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="4dp">
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_explore" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="Explorar carpetas"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_sort_local" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Nombre ↑" android:contentDescription="Ordenar canciones locales"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="4dp">
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_grouped_library" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Ver por artista/álbum"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_lyrics" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="4dp" android:text="Letra"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+                    <ProgressBar android:id="@+id/local_loading" style="?android:attr/progressBarStyleSmall" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginEnd="8dp" android:visibility="gone"/>
+                    <TextView android:id="@+id/local_message" style="@style/PlayerLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingVertical="12dp" android:singleLine="false" android:text="Elige una carpeta para ver tus canciones."/>
+                </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler_playlist" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="8dp" android:background="@drawable/player_screen" android:paddingTop="4dp" android:scrollbars="vertical"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/spotify_browser" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="48dp">
+                    <EditText android:id="@+id/spotify_search" style="@style/PlayerSearch" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:hint="Canción o artista" android:inputType="text" android:imeOptions="actionSearch"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/spotify_search_button" style="@style/PanelButton" android:layout_width="76dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:text="Buscar"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:gravity="center_vertical">
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/spotify_liked" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:text="Me gusta" android:drawableStart="@drawable/ic_pro_heart" android:drawableTint="#B6EE65" android:paddingHorizontal="14dp"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/spotify_connect" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:layout_marginStart="8dp" android:text="Conectar Spotify"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+                    <ProgressBar android:id="@+id/browser_loading" style="?android:attr/progressBarStyleSmall" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginEnd="8dp" android:visibility="gone"/>
+                    <TextView android:id="@+id/browser_message" style="@style/PlayerLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingVertical="10dp" android:singleLine="false"/>
+                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/spotify_sort" style="@style/PanelButton" android:layout_width="76dp" android:layout_height="44dp" android:layout_marginStart="4dp" android:text="Ordenar"/>
+                </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler_spotify" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="8dp" android:background="@drawable/player_screen" android:paddingTop="4dp" android:scrollbars="vertical"/>
+                <androidx.appcompat.widget.AppCompatButton android:id="@+id/browser_more" style="@style/PanelButton" android:layout_width="match_parent" android:layout_height="44dp" android:text="Ver más canciones" android:visibility="gone"/>
+                <LinearLayout android:id="@+id/oscilloscope_container" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" android:layout_marginTop="8dp"/>
+            </LinearLayout>
+            <ScrollView android:id="@+id/eq_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:fillViewport="true" android:clipToPadding="false"><LinearLayout android:id="@+id/eq_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="8dp"/></ScrollView>
+            <ScrollView android:id="@+id/settings_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clipToPadding="false"><LinearLayout android:id="@+id/settings_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="8dp"/></ScrollView>
+            <LinearLayout android:id="@+id/queue_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical">
+                    <TextView android:id="@+id/queue_info" style="@style/PlayerLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Cola de reproducción"/>
+                </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler_queue" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="8dp" android:background="@drawable/player_screen" android:paddingTop="4dp" android:scrollbars="vertical"/>
+            </LinearLayout>
+        </FrameLayout>
+        <TextView android:id="@+id/tv_status" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:singleLine="false" android:maxLines="3" android:visibility="gone" android:accessibilityLiveRegion="polite"/>
+        <LinearLayout android:id="@+id/navigation_bar" android:layout_width="match_parent" android:layout_height="54dp" android:layout_marginTop="6dp" android:padding="2dp">
+            <com.example.myapplication.ClassicTabView android:id="@+id/tab_local" android:layout_marginEnd="4dp" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Música" android:drawableTop="@drawable/ic_pro_music"/>
+            <com.example.myapplication.ClassicTabView android:id="@+id/tab_spotify" android:layout_marginEnd="4dp" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Spotify" android:drawableTop="@drawable/ic_spotify"/>
+            <com.example.myapplication.ClassicTabView android:id="@+id/tab_eq" android:layout_marginEnd="4dp" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Sonido" android:drawableTop="@drawable/ic_pro_eq"/>
+            <com.example.myapplication.ClassicTabView android:id="@+id/tab_queue" android:layout_marginEnd="4dp" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Cola" android:drawableTop="@drawable/ic_pro_queue"/>
+            <com.example.myapplication.ClassicTabView android:id="@+id/tab_settings" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Ajustes" android:drawableTop="@drawable/ic_pro_settings"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

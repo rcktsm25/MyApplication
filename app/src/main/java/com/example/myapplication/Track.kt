@@ -10,11 +10,15 @@ package com.example.myapplication
 data class Track(
     val title: String,
     val artist: String,
-    val uri: String
+    val uri: String,
+    val durationMs: Long = 0,
+    val folderId: String = "",
+    val folderPath: String = "",
+    val fileName: String = title
 ) {
     /**
      * Determina si la pista proviene de Spotify (URI `spotify:...` o enlace `open.spotify.com`).
      */
     val isSpotify: Boolean
-        get() = uri.startsWith("spotify:") || uri.contains("spotify.com")
+        get() = SpotifyResource.isSpotify(uri)
 }

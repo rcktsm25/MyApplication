@@ -1,0 +1,8 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="6dp" android:background="?attr/selectableItemBackground">
+    <TextView android:id="@+id/item_kind" style="@style/ClassicLabel" android:layout_width="28dp" android:layout_height="wrap_content" android:textColor="#B7B56D" android:textSize="18sp"/>
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@+id/item_title" style="@style/ClassicLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="#7FFF00" android:ellipsize="end"/>
+        <TextView android:id="@+id/item_subtitle" style="@style/ClassicLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:textColor="#A1AC98" android:ellipsize="end"/>
+    </LinearLayout>
+    <ImageButton android:id="@+id/item_play" style="@style/ClassicIcon" android:layout_width="44dp" android:layout_height="40dp" android:layout_marginStart="6dp" android:src="@drawable/ic_winamp_play" android:contentDescription="@string/cd_play"/>
+</LinearLayout>

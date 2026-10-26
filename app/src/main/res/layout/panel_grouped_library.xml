@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/grouped_library_panel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/winamp_title_strip"
+        android:tag="classic_strip">
+
+        <TextView
+            android:id="@+id/grouped_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="10dp"
+            android:background="#282936"
+            android:tag="classic_title"
+            android:text="BIBLIOTECA · ÁLBUMES"
+            android:textColor="#E0E2EA"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:accessibilityHeading="true"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginBottom="6dp"
+        android:gravity="center_vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_group_albums"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Álbumes"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_group_artists"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Artistas"
+            android:textSize="10sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_group_flat"
+            style="@style/PanelButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Plana"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_grouped"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:background="@drawable/player_screen"
+        android:paddingTop="4dp"
+        android:scrollbars="vertical"/>
+</LinearLayout>
