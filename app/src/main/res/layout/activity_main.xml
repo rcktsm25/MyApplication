@@ -18,9 +18,10 @@
                 <TextView android:id="@+id/source_badge" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="18dp" android:fontFamily="monospace" android:text="● DISPOSITIVO" android:textColor="#B6EE65" android:textSize="10sp"/>
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center_vertical">
+        <!-- Barra de progreso de la canción con tiempo total centrado -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center_vertical" android:layout_marginTop="4dp" android:layout_marginBottom="2dp" android:orientation="horizontal">
             <SeekBar android:id="@+id/seek_bar" style="@style/ProSlider" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:contentDescription="Posición de la canción"/>
-            <TextView android:id="@+id/total_time" style="@style/PlayerLabel" android:layout_width="42dp" android:layout_height="wrap_content" android:gravity="end" android:text="--:--" android:fontFamily="monospace" android:textSize="11sp"/>
+            <TextView android:id="@+id/total_time" android:layout_width="56dp" android:layout_height="28dp" android:gravity="center" android:text="--:--" android:fontFamily="monospace" android:textSize="12sp" android:textColor="#B6EE65" android:background="@drawable/player_screen" android:paddingHorizontal="8dp" android:layout_marginStart="10dp" android:includeFontPadding="false" android:textAlignment="center"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/volume_row" android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center_vertical">
             <TextView style="@style/PlayerLabel" android:layout_width="32dp" android:layout_height="wrap_content" android:text="VOL" android:fontFamily="monospace" android:textSize="10sp"/>
