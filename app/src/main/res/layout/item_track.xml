@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Fila de canción en la biblioteca local
-     Altura mínima 58dp para toque cómodo, fondo con estado seleccionado -->
+<!-- Fila de canción en la biblioteca local con portada de álbum
+     Altura mínima 60dp para toque cómodo, fondo con estado seleccionado
+     Incluye ImageView para portada cargada con Coil -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="52dp"
-    android:layout_marginBottom="0dp"
-    android:paddingVertical="6dp"
-    android:paddingHorizontal="10dp"
+    android:minHeight="60dp"
+    android:layout_marginBottom="2dp"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="12dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:background="@drawable/pro_track_row">
+    android:background="@drawable/pro_track_row"
+    android:elevation="2dp"
+    android:stateListAnimator="@null">
+
+    <!-- Portada del álbum (cargada con Coil) -->
+    <ImageView
+        android:id="@+id/img_album_art"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/player_screen"
+        android:contentDescription="Portada del álbum"/>
 
     <!-- Número de pista (estilo monospace Winamp) -->
     <TextView
         android:id="@+id/track_number"
-        android:layout_width="28dp"
+        android:layout_width="32dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:fontFamily="monospace"
         android:textSize="11sp"
         android:textColor="#8D9AA7"
+        android:layout_marginStart="10dp"
         android:importantForAccessibility="no"/>
 
     <!-- Título y artista -->
@@ -36,11 +50,12 @@
             android:id="@+id/track_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:fontFamily="monospace"
             android:textColor="#EAF0F6"
             android:maxLines="1"
-            android:ellipsize="end"/>
+            android:ellipsize="end"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/track_artist"
@@ -59,7 +74,7 @@
         android:id="@+id/track_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="6dp"
+        android:layout_marginEnd="8dp"
         android:fontFamily="monospace"
         android:textSize="10sp"
         android:textColor="#6B7B8B"/>
@@ -67,8 +82,8 @@
     <!-- Ícono Spotify (solo visible para tracks de Spotify) -->
     <ImageView
         android:id="@+id/img_spotify_icon"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:src="@drawable/ic_spotify"
         android:visibility="gone"
         android:contentDescription="Spotify"/>

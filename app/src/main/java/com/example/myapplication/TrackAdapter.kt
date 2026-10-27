@@ -5,8 +5,17 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import com.example.myapplication.databinding.ItemTrackBinding
 
+/**
+ * Adapter profesional para la lista de tracks con:
+ * - Coil para carga asíncrona de portadas de álbumes
+ * - DiffUtil con payload para rendimiento óptimo
+ * - Sombras y elevación Material Design
+ * - Placeholders y transiciones suaves
+ */
 class TrackAdapter(
     private val onTrackClick: (Track, Int) -> Unit
 ) : ListAdapter<Track, TrackAdapter.ViewHolder>(TrackDiffCallback()) {
@@ -15,12 +24,10 @@ class TrackAdapter(
     private var dimColor: Int = 0xFF8B0000.toInt()
     private var currentPlayingIndex: Int = -1
 
-    /** Actualiza el tema visual de la lista sin parpadeo.
-     *  Usa notifyItemRangeChanged para refrescar solo las filas visibles. */
+    /** Actualiza el tema visual de la lista sin parpadeo */
     fun updateTheme(accent: Int, dim: Int) {
         accentColor = accent
         dimColor = dim
-        // notifyItemRangeChanged refresca solo las filas visibles, no toda la lista
         if (currentList.isNotEmpty()) {
             notifyItemRangeChanged(0, currentList.size)
         }
@@ -44,15 +51,21 @@ class TrackAdapter(
             binding.imgSpotifyIcon.visibility =
                 if (track.isSpotify) android.view.View.VISIBLE else android.view.View.GONE
 
+            // Cargar portada del álbum con Coil (placeholder + transición suave)
+            binding.imgAlbumArt.load(track.albumArtUrl) {
+                placeholder(R.drawable.player_screen)
+                error(R.drawable.player_screen)
+                crossfade(true)
+                crossfade(300)
+                transformations(RoundedCornersTransformation(8f))
+            }
+
             updatePlayingState(isPlaying)
 
             binding.root.setOnClickListener { onTrackClick(track, position) }
         }
 
-        /**
-         * Optimización: Actualizar solo el estado de reproducción sin rebindear todo.
-         * Se usa con DiffUtil payload para evitar rebinds innecesarios durante scroll.
-         */
+        /** Actualizar solo el estado de reproducción sin rebindear todo */
         fun updatePlayingState(isPlaying: Boolean) {
             if (isPlaying) {
                 binding.trackTitle.setTextColor(0xFFFFFFFF.toInt())
@@ -70,15 +83,6 @@ class TrackAdapter(
         }
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
-        // Optimización: Si hay payload parcial, solo actualizar estado de reproducción
-        if (payloads.isEmpty() || payloads[0] != "STATE_CHANGED") {
-            holder.bind(getItem(position), position, position == currentPlayingIndex)
-        } else {
-            holder.updatePlayingState(position == currentPlayingIndex)
-        }
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemTrackBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -88,6 +92,14 @@ class TrackAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position), position, position == currentPlayingIndex)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty() || payloads[0] != "STATE_CHANGED") {
+            holder.bind(getItem(position), position, position == currentPlayingIndex)
+        } else {
+            holder.updatePlayingState(position == currentPlayingIndex)
+        }
     }
 }
 
