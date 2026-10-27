@@ -1,18 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Widget de pantalla de inicio para RocketPlayer
+     Diseño profesional con controles completos y estética Winamp
+     Incluye: Previous, Play/Pause, Next, Shuffle, Repeat -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:background="@drawable/player_chassis">
+    android:padding="10dp"
+    android:background="@drawable/player_chassis"
+    android:elevation="4dp">
 
+    <!-- Título del widget -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:layout_marginBottom="6dp"
+        android:layout_height="26dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/winamp_title_strip">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="6dp"
+            android:src="@drawable/rocket_player_icon"
+            android:contentDescription="@null"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -23,23 +36,26 @@
             android:text="ROCKETPLAYER"
             android:fontFamily="monospace"
             android:textStyle="bold"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textColor="#E0E2EA"/>
     </FrameLayout>
 
+    <!-- Información de la canción -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="6dp">
+        android:paddingHorizontal="8dp"
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:id="@+id/widget_title"
             android:layout_width="match_parent"
-            android:layout_height="24dp"
+            android:layout_height="26dp"
             android:fontFamily="monospace"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:textColor="#B6EE65"
+            android:textStyle="bold"
             android:singleLine="true"
             android:ellipsize="end"
             android:gravity="center_vertical"
@@ -48,18 +64,19 @@
         <TextView
             android:id="@+id/widget_artist"
             android:layout_width="match_parent"
-            android:layout_height="18dp"
+            android:layout_height="20dp"
             android:fontFamily="sans-serif"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textColor="#9CAAB7"
             android:singleLine="true"
             android:ellipsize="end"
             android:text="Tu música, a tu manera"/>
     </LinearLayout>
 
+    <!-- Fila de controles principal -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="44dp"
         android:layout_marginTop="6dp"
         android:gravity="center_vertical">
 
@@ -79,7 +96,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1.5"
-            android:background="@drawable/panel_button"
+            android:background="@drawable/pro_play_button"
             android:src="@drawable/ic_pro_play"
             android:scaleType="fitCenter"
             app:tint="#B6EE65"
@@ -95,5 +112,35 @@
             android:scaleType="fitCenter"
             app:tint="#203044"
             android:contentDescription="Siguiente"/>
+    </LinearLayout>
+
+    <!-- Fila de controles secundaria (Shuffle + Repeat) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/widget_btn_shuffle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/panel_button"
+            android:src="@drawable/ic_pro_shuffle"
+            android:scaleType="fitCenter"
+            app:tint="#6B7B8B"
+            android:contentDescription="Aleatorio"/>
+
+        <ImageButton
+            android:id="@+id/widget_btn_repeat"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/panel_button"
+            android:src="@drawable/ic_pro_repeat"
+            android:scaleType="fitCenter"
+            app:tint="#6B7B8B"
+            android:contentDescription="Repetir"/>
     </LinearLayout>
 </LinearLayout>
