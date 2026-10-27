@@ -119,6 +119,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var systemAudioCapture: SystemAudioCapture
     private var oscilloscopeView: OscilloscopeView? = null
     private var particleVisualizer: ParticleVisualizer? = null
+    private var shimmerLayout: com.facebook.shimmer.ShimmerFrameLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -257,6 +258,9 @@ class MainActivity : AppCompatActivity() {
         }
         binding.btnFolder.setOnLongClickListener { refreshFolder(); true }
         binding.localSearch.doAfterTextChanged { filterLocal() }
+        
+        // Inicializar Shimmer para efecto de carga profesional
+        shimmerLayout = findViewById(R.id.shimmer_layout)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (selectedTab != 0) showTab(0) else { isEnabled = false; onBackPressedDispatcher.onBackPressed(); isEnabled = true }
