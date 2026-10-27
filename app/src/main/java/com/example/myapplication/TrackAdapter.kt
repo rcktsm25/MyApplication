@@ -44,6 +44,16 @@ class TrackAdapter(
             binding.imgSpotifyIcon.visibility =
                 if (track.isSpotify) android.view.View.VISIBLE else android.view.View.GONE
 
+            updatePlayingState(isPlaying)
+
+            binding.root.setOnClickListener { onTrackClick(track, position) }
+        }
+
+        /**
+         * Optimización: Actualizar solo el estado de reproducción sin rebindear todo.
+         * Se usa con DiffUtil payload para evitar rebinds innecesarios durante scroll.
+         */
+        fun updatePlayingState(isPlaying: Boolean) {
             if (isPlaying) {
                 binding.trackTitle.setTextColor(0xFFFFFFFF.toInt())
                 binding.trackArtist.setTextColor(0xFFB1C2CE.toInt())
@@ -54,11 +64,18 @@ class TrackAdapter(
                 binding.trackTitle.setTextColor(accentColor)
                 binding.trackArtist.setTextColor(0xFF91A1B0.toInt())
                 binding.trackNumber.setTextColor(accentColor)
-                binding.trackNumber.text = String.format(java.util.Locale.ROOT, "%02d", position + 1)
+                binding.trackNumber.text = String.format(java.util.Locale.ROOT, "%02d", adapterPosition + 1)
                 binding.root.isSelected = false
             }
+        }
+    }
 
-            binding.root.setOnClickListener { onTrackClick(track, position) }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        // Optimización: Si hay payload parcial, solo actualizar estado de reproducción
+        if (payloads.isEmpty() || payloads[0] != "STATE_CHANGED") {
+            holder.bind(getItem(position), position, position == currentPlayingIndex)
+        } else {
+            holder.updatePlayingState(position == currentPlayingIndex)
         }
     }
 
@@ -74,10 +91,25 @@ class TrackAdapter(
     }
 }
 
+/**
+ * DiffUtil para tracks - compara por URI para identificar items únicos.
+ * Solo refresca las filas que realmente cambiaron, optimizando scroll en listas grandes.
+ */
 class TrackDiffCallback : DiffUtil.ItemCallback<Track>() {
     override fun areItemsTheSame(oldItem: Track, newItem: Track): Boolean =
         oldItem.uri == newItem.uri
 
     override fun areContentsTheSame(oldItem: Track, newItem: Track): Boolean =
         oldItem == newItem
+
+    /**
+     * Optimización: payload parcial para cambios de estado (playing/pausa)
+     * Evita rebindear toda la fila cuando solo cambia el estado de reproducción.
+     */
+    override fun getChangePayload(oldItem: Track, newItem: Track): Any? {
+        return if (oldItem.uri == newItem.uri && oldItem != newItem) {
+            // Solo cambió el estado de reproducción, no need full rebind
+            "STATE_CHANGED"
+        } else null
+    }
 }
