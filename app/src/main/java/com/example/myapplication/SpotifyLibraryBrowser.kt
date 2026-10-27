@@ -9,7 +9,8 @@ import com.example.myapplication.databinding.ActivityMainBinding
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-/** Song-level selection, deliberately without playlists or modifications to the Spotify account. */
+/** Song-level selection, deliberately without playlists or modifications to the Spotify account.
+ *  Incluye caché de búsqueda para evitar requests repetidos a la API. */
 class SpotifyLibraryBrowser(
     private val activity: AppCompatActivity,
     private val binding: ActivityMainBinding,
@@ -31,6 +32,7 @@ class SpotifyLibraryBrowser(
     private val songs = mutableListOf<Track>()
     private var selectedUri: String? = null
     private val adapter = TrackAdapter { track, _ -> play(track) }
+    private val searchCache = SpotifySearchCache() // Caché de búsqueda (5 min TTL)
 
     init {
         adapter.updateTheme(0xFFB6EE65.toInt(), 0xFF727B68.toInt())
@@ -79,6 +81,7 @@ class SpotifyLibraryBrowser(
         generation++; task?.cancel(true); songs.clear(); loaded = false; busy = false
         adapter.submitList(emptyList()); binding.browserMore.visibility = View.GONE
         binding.browserMessage.text = "Tus canciones, aquí mismo. Conecta Spotify para buscar o escuchar tus Me gusta."
+        searchCache.clear() // Limpiar caché al desconectar
         updateAction()
     }
     fun select(uri: String?) {
@@ -103,6 +106,23 @@ class SpotifyLibraryBrowser(
         task?.cancel(true)
         val offset = if (append) nextOffset ?: return else 0
         val requestedQuery = query
+
+        // Verificar caché antes de hacer request a la API
+        if (!append && requestedQuery.isNotBlank()) {
+            val cached = searchCache.get(requestedQuery)
+            if (cached != null) {
+                songs.clear()
+                songs.addAll(cached)
+                submitSongs()
+                busy = false
+                loaded = true
+                binding.browserMessage.text = "${songs.size} canciones  ·  Resultados de búsqueda (caché)"
+                binding.browserMore.visibility = View.GONE
+                updateAction()
+                return
+            }
+        }
+
         if (!append) { songs.clear(); adapter.submitList(emptyList()) }
         busy = true
         binding.browserMore.visibility = View.GONE
@@ -120,6 +140,10 @@ class SpotifyLibraryBrowser(
                     songs.addAll(page.tracks.filter { ids.add(it.uri) })
                     nextOffset = page.nextOffset?.takeIf { it > offset && (requestedQuery.isBlank() || it <= 1000) }
                     submitSongs()
+                    // Guardar en caché si es búsqueda nueva
+                    if (!append && requestedQuery.isNotBlank()) {
+                        searchCache.put(requestedQuery, songs.toList())
+                    }
                     binding.browserMessage.text = if (songs.isEmpty()) "No hay canciones disponibles. Prueba otra búsqueda."
                         else "${songs.size} canciones  ·  ${if (requestedQuery.isBlank()) "Tus Me gusta" else "Resultados de búsqueda"}"
                     binding.browserMore.visibility = if (nextOffset != null) View.VISIBLE else View.GONE

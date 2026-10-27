@@ -15,10 +15,15 @@ class TrackAdapter(
     private var dimColor: Int = 0xFF8B0000.toInt()
     private var currentPlayingIndex: Int = -1
 
+    /** Actualiza el tema visual de la lista sin parpadeo.
+     *  Usa notifyItemRangeChanged para refrescar solo las filas visibles. */
     fun updateTheme(accent: Int, dim: Int) {
         accentColor = accent
         dimColor = dim
-        notifyDataSetChanged()
+        // notifyItemRangeChanged refresca solo las filas visibles, no toda la lista
+        if (currentList.isNotEmpty()) {
+            notifyItemRangeChanged(0, currentList.size)
+        }
     }
 
     fun setCurrentTrack(index: Int) {

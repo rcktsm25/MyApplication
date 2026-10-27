@@ -253,23 +253,43 @@ class MainActivity : AppCompatActivity() {
         selectedTab = tab
         updateNavigation()
         binding.sectionTitle.text = listOf("BIBLIOTECA LOCAL", "CANCIONES · SPOTIFY", "ECUALIZADOR", "CONFIGURACIÓN", "COLA")[tab]
-        binding.localPanel.visibility = if (tab == 0) View.VISIBLE else View.GONE
+        // Animación de transición entre pestañas (fade-in suave)
+        fadeIn(binding.localPanel, tab == 0)
         if (tab == 1) {
-            browser.show()
+            fadeIn(binding.spotifyBrowser, true)
             showSpotifyVisualizer()
         } else {
-            browser.hide()
+            fadeIn(binding.spotifyBrowser, false)
             hideSpotifyVisualizer()
         }
-        binding.eqPanel.visibility = if (tab == 2) View.VISIBLE else View.GONE
-        binding.settingsPanel.visibility = if (tab == 3) View.VISIBLE else View.GONE
-        binding.queuePanel?.visibility = if (tab == 4) View.VISIBLE else View.GONE
-        if (tab == 4) updateQueuePanel()
+        fadeIn(binding.eqPanel, tab == 2)
+        fadeIn(binding.settingsPanel, tab == 3)
+        if (tab == 4) {
+            updateQueuePanel()
+            fadeIn(binding.queuePanel, true)
+        } else {
+            fadeIn(binding.queuePanel, false)
+        }
         if (tab == 2) panels.equalizer(binding.eqContent, spotifyMode, ::openSpotify)
         if (tab == 3) panels.settings(binding.settingsContent, spotifyMode, ::configureSpotify, ::disconnectSpotify,
             ::chooseFolder, ::refreshFolder, ::applyAppearance, { player?.playbackParameters = PlaybackParameters(it) },
             ::exportConfig, ::importConfig, ::showGroupedLibrary)
         PlayerAppearance.applySurfaces(binding.main, prefs)
+    }
+
+    // Animación de fade-in/fade-out para transiciones suaves entre pestañas
+    private fun fadeIn(view: View?, visible: Boolean) {
+        if (view == null) return
+        if (visible) {
+            view.visibility = View.VISIBLE
+            view.alpha = 0f
+            view.animate().alpha(1f).setDuration(150).start()
+        } else {
+            view.animate().alpha(0f).setDuration(100).withEndAction {
+                view.visibility = View.GONE
+                view.alpha = 1f // Reset para próxima vez
+            }.start()
+        }
     }
 
     private fun updateNavigation() {
