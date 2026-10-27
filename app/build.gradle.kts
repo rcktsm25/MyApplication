@@ -82,6 +82,24 @@ dependencies {
     implementation(libs.google.gson)
 
     // ═══════════════════════════════════════════════════════════════
+    // Librerías profesionales para UI/UX de nivel comercial
+    // ═══════════════════════════════════════════════════════════════
+    
+    // Lottie - Animaciones profesionales (After Effects → Android)
+    // Permite animaciones vectoriales complejas sin archivos XML enormes
+    implementation(libs.lottie)
+
+    // Coil - Carga de imágenes profesional (alternativa moderna a Glide)
+    // - Carga asíncrona de imágenes desde URLs
+    // - Caché automática en memoria y disco
+    // - Placeholders y transiciones suaves
+    implementation(libs.coil)
+
+    // Shimmer - Efecto de carga elegante (como Facebook/Instagram)
+    // Muestra un efecto de "brillo" mientras carga el contenido
+    implementation(libs.shimmer)
+
+    // ═══════════════════════════════════════════════════════════════
     // Testing — solo se incluyen en builds de prueba, no en el APK final
     // ═══════════════════════════════════════════════════════════════
     testImplementation(libs.junit)

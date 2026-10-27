@@ -11,6 +11,10 @@ activityKtx = "1.8.0"
 constraintlayout = "2.1.4"
 media3 = "1.4.1"
 gson = "2.10.1"
+# Librerías profesionales para UI/UX
+lottie = "6.1.0"
+coil = "2.5.0"
+shimmer = "0.5.0"
 
 [libraries]
 androidx-browser = { group = "androidx.browser", name = "browser", version = "1.5.0" }
@@ -27,6 +31,24 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+
+# ═══════════════════════════════════════════════════════════════
+# Librerías profesionales para UI/UX de nivel comercial
+# ═══════════════════════════════════════════════════════════════
+
+# Lottie - Animaciones profesionales (After Effects → Android)
+# Permite animaciones vectoriales complejas sin archivos XML enormes
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+
+# Coil - Carga de imágenes profesional (alternativa moderna a Glide)
+# - Carga asíncrona de imágenes desde URLs
+# - Caché automática en memoria y disco
+# - Placeholders y transiciones suaves
+coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
+
+# Shimmer - Efecto de carga elegante (como Facebook/Instagram)
+# Muestra un efecto de "brillo" mientras carga el contenido
+shimmer = { group = "com.facebook.shimmer", name = "shimmer", version.ref = "shimmer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
