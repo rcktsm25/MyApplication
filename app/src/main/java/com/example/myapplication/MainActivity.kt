@@ -116,6 +116,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var systemThemeHandler: SystemThemeHandler
     private lateinit var configBackupManager: ConfigBackupManager
     private lateinit var displayGestureHandler: DisplayGestureHandler
+    private lateinit var systemAudioCapture: SystemAudioCapture
     private var oscilloscopeView: OscilloscopeView? = null
     private var particleVisualizer: ParticleVisualizer? = null
 
@@ -169,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                     (audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * vol / 100f).toInt(), 0)
             }
         )
+        systemAudioCapture = SystemAudioCapture(this)
 
         // Cola de reproducción
         queueAdapter = QueueAdapter(
@@ -201,6 +203,24 @@ class MainActivity : AppCompatActivity() {
                 applyBackground = { binding.main.setBackgroundColor(it) },
                 applyTextColor = { binding.trackTitle.setTextColor(it) }
             )
+        }
+
+        // Captura de audio del sistema para osciloscopio con Spotify (Android 10+)
+        systemAudioCapture = SystemAudioCapture(this)
+        
+        // Botón para activar captura de audio (osciloscopio con Spotify)
+        binding.btnCaptureAudio?.setOnClickListener {
+            if (systemAudioCapture.isActive()) {
+                systemAudioCapture.stopCapture()
+                binding.btnCaptureAudio?.text = "🎤 Capturar Audio"
+                status("Captura de audio desactivada")
+            } else {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    systemAudioCapture.startCaptureRequest(this)
+                } else {
+                    status("AudioPlaybackCapture requiere Android 10 o superior")
+                }
+            }
         }
 
         spotify = SpotifyManager(this)
@@ -247,6 +267,27 @@ class MainActivity : AppCompatActivity() {
         prefs.getString("music_folder_uri", null)?.let { loadFolder(Uri.parse(it)) }
         if (android.os.Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    /**
+     * Maneja el resultado del permiso de captura de audio del sistema (Android 10+).
+     * Esto permite que el osciloscopio muestre audio REAL de Spotify.
+     */
+    @Deprecated("Spotify SDK activity result")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SpotifyManager.REQUEST_CODE_SPOTIFY_AUTH) spotify.onAuthorizationResult(this, resultCode, data)
+        if (requestCode == SpotifyManager.REQUEST_CODE_SPOTIFY_BROWSER_AUTH) spotify.onBrowserAuthorizationResult(this, resultCode, data)
+        
+        // Manejar resultado de captura de audio del sistema
+        if (requestCode == SystemAudioCapture.CAPTURE_REQUEST_CODE) {
+            val success = systemAudioCapture.handleCaptureResult(requestCode, resultCode, data)
+            if (success) {
+                status("Captura de audio activada - Osciloscopio con Spotify")
+            } else {
+                status("Captura de audio cancelada")
+            }
+        }
     }
 
     private fun showTab(tab: Int) {
@@ -503,10 +544,14 @@ class MainActivity : AppCompatActivity() {
                     binding.trackTitle.text = state.track?.name ?: "Spotify"
                     binding.trackArtist.text = state.track?.artist?.name.orEmpty()
                     browser.select(spotifyTrackUri); renderPlayback()
-                    // Actualizar espectro para visualizadores
+                    // Actualizar espectro para visualizadores con datos de Spotify
                     state.track?.let { track ->
-                        AudioRuntime.spectrum = FloatArray(28) { 0.1f + (it * 0.02f) }
-                        oscilloscopeView?.setWaveform(AudioRuntime.waveform)
+                        // Si la captura de audio está activa, el osciloscopio usa audio real
+                        // Si no, usa datos simulados basados en el estado de reproducción
+                        if (!systemAudioCapture.isActive()) {
+                            AudioRuntime.spectrum = FloatArray(28) { 0.1f + (it * 0.02f) }
+                            oscilloscopeView?.setWaveform(AudioRuntime.waveform)
+                        }
                     }
                 }
             }
@@ -828,16 +873,11 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
     override fun onDestroy() {
+        systemAudioCapture.destroy()
         expandedVisualizer.dismiss()
         handler.removeCallbacksAndMessages(null)
         folderGeneration++; folderTask?.cancel(true); folderWorker.shutdownNow(); browser.destroy()
         spotify.onError = null; spotify.onPlayerStateChanged = null; spotify.onConnectionStatusChanged = null
         spotify.disconnect(); super.onDestroy()
-    }
-    @Deprecated("Spotify SDK activity result")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SpotifyManager.REQUEST_CODE_SPOTIFY_AUTH) spotify.onAuthorizationResult(this, resultCode, data)
-        if (requestCode == SpotifyManager.REQUEST_CODE_SPOTIFY_BROWSER_AUTH) spotify.onBrowserAuthorizationResult(this, resultCode, data)
     }
 }
