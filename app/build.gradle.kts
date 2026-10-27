@@ -21,12 +21,19 @@ android {
     }
 
     buildTypes {
-        // Release: minificación con R8 + reducción de recursos + ofuscación
-        // Esto hace el APK más pequeño y difícil de decompilar
+        // Release: minificación con R8 + reducción de recursos + ofuscación + firma
+        // Esto hace el APK más pequeño, seguro y listo para distribución
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Firma automática con el keystore de release
+            signingConfig = signingConfigs.create("release") {
+                storeFile = file("/Users/samuel/.android/rocketplayer-release-key.jks")
+                storePassword = "RocketPlayer2026"
+                keyAlias = "rocketplayer"
+                keyPassword = "RocketPlayer2026"
+            }
         }
         // Debug: sin minificación para iteración rápida durante desarrollo
         debug {

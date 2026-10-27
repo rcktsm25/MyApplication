@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity() {
     private val queueManager = QueueManager()
     private lateinit var queueAdapter: QueueAdapter
     private lateinit var crossfadeManager: CrossfadeManager
-    private lateinit var lyricsFetcher: LyricsFetcher
     private lateinit var metadataEditor: MetadataEditor
     private lateinit var replayGainProcessor: ReplayGainProcessor
     private lateinit var systemThemeHandler: SystemThemeHandler
@@ -119,10 +118,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var displayGestureHandler: DisplayGestureHandler
     private var oscilloscopeView: OscilloscopeView? = null
     private var particleVisualizer: ParticleVisualizer? = null
-    private var currentLyrics: LyricsFetcher.Lyrics? = null
-    private var lyricsVisible = false
-    private var lyricsDialog: AlertDialog? = null
-    private var currentLyricsTrack: Track? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,7 +154,6 @@ class MainActivity : AppCompatActivity() {
 
         // ── Inicializar features integradas ──
         crossfadeManager = CrossfadeManager(prefs) { player }
-        lyricsFetcher = LyricsFetcher(this)
         metadataEditor = MetadataEditor(this)
         replayGainProcessor = ReplayGainProcessor(prefs)
         systemThemeHandler = SystemThemeHandler(this, prefs)
@@ -243,11 +237,8 @@ class MainActivity : AppCompatActivity() {
         }
         binding.btnFolder.setOnLongClickListener { refreshFolder(); true }
         binding.localSearch.doAfterTextChanged { filterLocal() }
-        binding.btnGroupedLibrary?.setOnClickListener { showGroupedLibrary() }
-        binding.btnLyrics?.setOnClickListener { toggleLyrics() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (lyricsVisible) { lyricsDialog?.dismiss(); lyricsVisible = false; return }
                 if (selectedTab != 0) showTab(0) else { isEnabled = false; onBackPressedDispatcher.onBackPressed(); isEnabled = true }
             }
         })
@@ -477,7 +468,6 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 if (!isDestroyed && request == playbackRequest && spotifyMode) {
                     spotify.play(track.uri, this); browser.select(track.uri); status("Reproduciendo en Spotify")
-                    fetchLyricsForTrack(track)
                 }
             }
         })
@@ -552,69 +542,9 @@ class MainActivity : AppCompatActivity() {
         binding.queueInfo?.text = "${tracks.size} canciones${if (index >= 0) " · Reproduciendo: ${tracks.getOrNull(index)?.title}" else ""}"
     }
 
-    // ── Letras ──
-    private fun fetchLyricsForTrack(track: Track) {
-        currentLyricsTrack = track
-        lyricsFetcher.fetch(track.title, if (track.artist != "Artista desconocido") track.artist else null, track.durationMs.takeIf { it > 0 }) { lyrics ->
-            runOnUiThread {
-                currentLyrics = lyrics
-                if (lyricsVisible) showLyricsDialog()
-            }
-        }
-    }
-    private fun fetchLyricsForLocalTrack(track: Track) {
-        currentLyricsTrack = track
-        lyricsFetcher.fetch(
-            track.title.replace(Regex("(?i)\\.(wav|mp3|m4a|aac|flac|ogg|opus)$"), ""),
-            if (track.artist != "Artista desconocido") track.artist else null,
-            track.durationMs.takeIf { it > 0 }
-        ) { lyrics ->
-            runOnUiThread {
-                currentLyrics = lyrics
-                if (lyricsVisible) showLyricsDialog()
-            }
-        }
-    }
-    private fun toggleLyrics() {
-        if (lyricsVisible) {
-            lyricsDialog?.dismiss()
-            lyricsVisible = false
-        } else {
-            showLyricsDialog()
-            lyricsVisible = true
-        }
-    }
-    private fun showLyricsDialog() {
-        val lyrics = currentLyrics
-        if (lyrics == null) {
-            Toast.makeText(this, "Buscando letra...", Toast.LENGTH_SHORT).show()
-            val track = currentLyricsTrack
-            if (track != null) fetchLyricsForTrack(track)
-            return
-        }
-        val contentView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(32, 24, 32, 24)
-            addView(TextView(this@MainActivity).apply {
-                text = lyrics.text
-                textSize = 16f
-                setTextColor(0xFFE0E2EA.toInt())
-                setLineSpacing(8f, 1f)
-                setTextIsSelectable(true)
-            })
-        }
-        lyricsDialog = AlertDialog.Builder(this)
-            .setTitle("${currentLyricsTrack?.title ?: "Letra"}${if (lyrics.isSynchronized) " (sincronizada)" else ""}")
-            .setView(ScrollView(this).apply { addView(contentView) })
-            .setPositiveButton("Cerrar", null)
-            .setOnDismissListener { lyricsVisible = false }
-            .create()
-        lyricsDialog?.show()
-    }
-
     // ── Metadatos ──
     private fun showMetadataEditor() {
-        val currentTrack = if (spotifyMode) currentLyricsTrack else player?.currentMediaItem?.let { item ->
+        val currentTrack = player?.currentMediaItem?.let { item ->
             localTracks.find { it.uri == item.mediaId }
         }
         if (currentTrack == null) {
@@ -641,7 +571,6 @@ class MainActivity : AppCompatActivity() {
                 metadataEditor.saveMetadata(newMetadata)
                 Toast.makeText(this, R.string.metadata_saved, Toast.LENGTH_SHORT).show()
                 renderLocalMetadata()
-                if (spotifyMode) fetchLyricsForTrack(currentTrack)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -879,7 +808,6 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
     override fun onDestroy() {
-        lyricsFetcher.cancel()
         expandedVisualizer.dismiss()
         handler.removeCallbacksAndMessages(null)
         folderGeneration++; folderTask?.cancel(true); folderWorker.shutdownNow(); browser.destroy()

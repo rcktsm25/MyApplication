@@ -52,7 +52,6 @@
                 </LinearLayout>
                 <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="4dp">
                     <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_grouped_library" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Ver por artista/álbum"/>
-                    <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_lyrics" style="@style/PanelButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="4dp" android:text="Letra"/>
                 </LinearLayout>
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
                     <ProgressBar android:id="@+id/local_loading" style="?android:attr/progressBarStyleSmall" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginEnd="8dp" android:visibility="gone"/>
