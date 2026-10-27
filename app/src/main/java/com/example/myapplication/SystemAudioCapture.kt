@@ -101,9 +101,19 @@ class SystemAudioCapture(private val context: Context) {
                     .setBufferSizeInBytes(BUFFER_SIZE)
                     .build()
 
-                audioRecord?.startRecording()
-                isCapturing = true
-                Log.i(TAG, "Captura de audio del sistema iniciada (${SAMPLE_RATE}Hz, mono, 16-bit)")
+                // Verificar permiso antes de iniciar captura (requerido por lint para Play Store)
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.RECORD_AUDIO
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    audioRecord?.startRecording()
+                    isCapturing = true
+                    Log.i(TAG, "Captura de audio del sistema iniciada (${SAMPLE_RATE}Hz, mono, 16-bit)")
+                } else {
+                    Log.w(TAG, "Permiso RECORD_AUDIO no concedido")
+                    return
+                }
 
                 // Buffer para leer audio PCM
                 val buffer = ByteBuffer.allocateDirect(BUFFER_SIZE).order(ByteOrder.nativeOrder())
