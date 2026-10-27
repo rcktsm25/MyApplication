@@ -1,5 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Botón con relieve 3D estilo Winamp Classic
+     - Sombras exteriores para profundidad
+     - Gradiente metálico con brillo superior
+     - Efecto "hundido" al presionar
+     - Borde resaltado cuando está seleccionado -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:state_selected="true"><layer-list><item><shape><solid android:color="#141824"/></shape></item><item android:left="2dp" android:top="2dp" android:right="1dp" android:bottom="1dp"><shape><solid android:color="#354256"/><stroke android:width="1dp" android:color="#A4B0C0"/></shape></item></layer-list></item>
-<item android:state_pressed="true"><layer-list><item><shape><solid android:color="#202C39"/></shape></item><item android:left="2dp" android:top="2dp"><shape><solid android:color="#849CAC"/></shape></item></layer-list></item>
-<item><layer-list><item><shape><solid android:color="#111722"/></shape></item><item android:bottom="2dp" android:right="2dp"><shape><solid android:color="#D6E5EC"/></shape></item><item android:left="2dp" android:top="2dp" android:bottom="3dp" android:right="3dp"><shape><gradient android:startColor="#B7CAD6" android:endColor="#879FAC" android:angle="270"/></shape></item></layer-list></item>
+
+    <!-- ═══ Estado seleccionado (activo) ═══ -->
+    <item android:state_selected="true">
+        <layer-list>
+            <!-- Sombra profunda -->
+            <item android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <solid android:color="#0A0D10"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Marco exterior metálico -->
+            <item android:top="1dp" android:left="1dp" android:bottom="3dp" android:right="3dp">
+                <shape>
+                    <solid android:color="#3A4A5A"/>
+                    <corners android:radius="4dp"/>
+                    <stroke android:width="1dp" android:color="#B0C0D0"/>
+                </shape>
+            </item>
+            <!-- Superficie interior oscura con gradiente sutil -->
+            <item android:top="2dp" android:left="2dp" android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <gradient
+                        android:startColor="#2A3545"
+                        android:endColor="#1A2530"
+                        android:angle="270"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+            <!-- Brillo interior sutil -->
+            <item android:top="2dp" android:left="2dp" android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <gradient
+                        android:startColor="#20FFFFFF"
+                        android:endColor="#00FFFFFF"
+                        android:angle="90"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- ═══ Estado presionado (hundido) ═══ -->
+    <item android:state_pressed="true">
+        <layer-list>
+            <!-- Sombra interior (efecto profundidad invertida) -->
+            <item android:top="2dp" android:left="2dp">
+                <shape>
+                    <solid android:color="#080B0E"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Superficie hundida -->
+            <item android:bottom="1dp" android:right="1dp">
+                <shape>
+                    <solid android:color="#6B8090"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Reflejo interior sutil -->
+            <item android:top="3dp" android:left="3dp">
+                <shape>
+                    <solid android:color="#0D1115"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- ═══ Estado normal (relieve 3D) ═══ -->
+    <item>
+        <layer-list>
+            <!-- Sombra exterior (profundidad) -->
+            <item android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <solid android:color="#0A0D10"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Borde metálico exterior (luz lateral) -->
+            <item android:top="1dp" android:left="1dp" android:bottom="3dp" android:right="3dp">
+                <shape>
+                    <solid android:color="#C0D0DC"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Gradiente metálico principal -->
+            <item android:top="2dp" android:left="2dp" android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <gradient
+                        android:startColor="#A8BCC8"
+                        android:centerColor="#98ACB8"
+                        android:endColor="#7890A0"
+                        android:angle="270"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+            <!-- Brillo superior (efecto cristal) -->
+            <item android:top="2dp" android:left="2dp" android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <gradient
+                        android:startColor="#50FFFFFF"
+                        android:centerColor="#15FFFFFF"
+                        android:endColor="#00FFFFFF"
+                        android:angle="90"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+            <!-- Textura metálica sutil (líneas finas) -->
+            <item android:top="2dp" android:left="2dp" android:bottom="4dp" android:right="4dp">
+                <shape>
+                    <gradient
+                        android:startColor="#08FFFFFF"
+                        android:endColor="#00FFFFFF"
+                        android:angle="0"/>
+                    <corners android:radius="3dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
 </selector>
