@@ -414,13 +414,24 @@ class MainActivity : AppCompatActivity() {
     private fun loadFolder(uri: Uri) {
         val generation = ++folderGeneration
         folderTask?.cancel(true)
-        binding.localMessage.text = "Leyendo carpeta y subcarpetas…"
+        
+        // Activar Shimmer durante carga
+        shimmerLayout?.startShimmer()
+        shimmerLayout?.visibility = View.VISIBLE
+        binding.localMessage.visibility = View.GONE
+        
         binding.localLoading.visibility = View.VISIBLE
         folderTask = folderWorker.submit {
             val result = runCatching { MusicFolderScanner(applicationContext.contentResolver).scanLibrary(uri) }
             runOnUiThread {
                 if (isDestroyed || generation != folderGeneration) return@runOnUiThread
+                
+                // Desactivar Shimmer cuando termina la carga
+                shimmerLayout?.stopShimmer()
+                shimmerLayout?.visibility = View.GONE
+                
                 binding.localLoading.visibility = View.GONE
+                binding.localMessage.visibility = View.VISIBLE
                 result.fold({ library ->
                     localTracks.clear(); localTracks.addAll(library.tracks); localFolders = library.folders
                     if (localFolders.none { it.id == selectedFolder }) selectedFolder = null
