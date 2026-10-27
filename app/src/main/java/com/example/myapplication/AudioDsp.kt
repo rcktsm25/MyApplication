@@ -26,9 +26,20 @@ class AudioDsp(private val sampleRate: Int, private val channels: Int) {
         val presets = linkedMapOf(
             "Plano" to List(10) { 0f },
             "Rock" to listOf(4f, 3f, 1f, -1f, -2f, 1f, 3f, 4f, 4f, 3f),
+            "Pop" to listOf(-1f, 2f, 4f, 5f, 3f, 0f, -1f, -2f, -2f, -1f),
+            "Jazz" to listOf(3f, 2f, 0f, 2f, -2f, -2f, 0f, 2f, 3f, 4f),
+            "Clásica" to listOf(4f, 3f, 2f, 1f, -1f, -2f, -1f, 0f, 2f, 4f),
             "Electrónica" to listOf(5f, 4f, 1f, 0f, -2f, 1f, 2f, 4f, 3f, 2f),
+            "Hip-Hop" to listOf(5f, 4f, 2f, 0f, -1f, 1f, 2f, 3f, 3f, 2f),
+            "R&B" to listOf(4f, 3f, 1f, 0f, -1f, 0f, 1f, 3f, 4f, 4f),
             "Voces" to listOf(-3f, -2f, 0f, 2f, 3f, 3f, 1f, 0f, -1f, -2f),
-            "Graves" to listOf(6f, 4f, 2f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+            "Podcast" to listOf(-2f, -1f, 1f, 3f, 4f, 4f, 2f, 0f, -1f, -2f),
+            "Graves" to listOf(6f, 4f, 2f, 0f, 0f, 0f, 0f, 0f, 0f, 0f),
+            "Agudos" to listOf(0f, 0f, 0f, 0f, 0f, 2f, 4f, 5f, 5f, 6f),
+            "Latin" to listOf(4f, 3f, 2f, 1f, -1f, 0f, 2f, 3f, 3f, 2f),
+            "Reggaetón" to listOf(5f, 4f, 2f, 0f, -2f, 1f, 2f, 3f, 3f, 2f),
+            "Metal" to listOf(5f, 3f, 0f, -1f, -2f, 0f, 2f, 4f, 4f, 5f),
+            "Ska" to listOf(3f, 2f, 0f, -1f, -2f, 0f, 2f, 3f, 4f, 4f),
         )
     }
     private val coefficients = Array(10) { doubleArrayOf(1.0, 0.0, 0.0, 0.0, 0.0) }
