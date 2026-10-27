@@ -1,9 +1,75 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="58dp" android:layout_marginBottom="0dp" android:padding="8dp" android:gravity="center_vertical" android:orientation="horizontal" android:background="@drawable/pro_track_row">
-    <TextView android:id="@+id/track_number" android:layout_width="32dp" android:layout_height="36dp" android:gravity="center" android:fontFamily="monospace" android:textSize="12sp" android:importantForAccessibility="no"/>
-    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="10dp" android:layout_marginEnd="8dp">
-        <TextView android:id="@+id/track_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:fontFamily="monospace" android:textColor="#EAF0F6" android:maxLines="2" android:ellipsize="end"/>
-        <TextView android:id="@+id/track_artist" style="@style/PlayerLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="#8E9DAB" android:ellipsize="end"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fila de canción en la biblioteca local
+     Altura mínima 58dp para toque cómodo, fondo con estado seleccionado -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="52dp"
+    android:layout_marginBottom="0dp"
+    android:paddingVertical="6dp"
+    android:paddingHorizontal="10dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="@drawable/pro_track_row">
+
+    <!-- Número de pista (estilo monospace Winamp) -->
+    <TextView
+        android:id="@+id/track_number"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:fontFamily="monospace"
+        android:textSize="11sp"
+        android:textColor="#8D9AA7"
+        android:importantForAccessibility="no"/>
+
+    <!-- Título y artista -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/track_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textColor="#EAF0F6"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/track_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif"
+            android:textColor="#8E9DAB"
+            android:maxLines="1"
+            android:ellipsize="end"/>
     </LinearLayout>
-    <TextView android:id="@+id/track_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="4dp" android:fontFamily="monospace" android:textSize="10sp" android:textColor="#B8BCCC"/>
-    <ImageView android:id="@+id/img_spotify_icon" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_spotify" android:visibility="gone" android:contentDescription="Spotify"/>
+
+    <!-- Duración -->
+    <TextView
+        android:id="@+id/track_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:fontFamily="monospace"
+        android:textSize="10sp"
+        android:textColor="#6B7B8B"/>
+
+    <!-- Ícono Spotify (solo visible para tracks de Spotify) -->
+    <ImageView
+        android:id="@+id/img_spotify_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@drawable/ic_spotify"
+        android:visibility="gone"
+        android:contentDescription="Spotify"/>
 </LinearLayout>
